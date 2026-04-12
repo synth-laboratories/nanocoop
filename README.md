@@ -49,7 +49,7 @@ NanoCoop evaluates the focal policy primarily via **cross-play** against a fixed
 This repo ships as a **full scaffold with runnable OvercookedV2 smoke baselines**:
 
 - the **official benchmark target** is `jaxmarl` / OvercookedV2
-- starter records in `records/` are marked **`benchmark_eligible: false`** until replaced by verified OvercookedV2 runs
+- `records/` starts empty except for documentation; add rows only after verified OvercookedV2 runs
 
 ---
 
@@ -57,9 +57,9 @@ This repo ships as a **full scaffold with runnable OvercookedV2 smoke baselines*
 
 | Track | Rank | Run | Score | Summary | Record |
 | --- | ---: | --- | ---: | --- | --- |
-| `offline_20min_1xa100_40gb` | 1 | `scaffold_reference_baseline` | `2.1557` | Smoke-only starter baseline for dataset filtering + lookup-policy distillation | `records/offline_20min_1xa100_40gb/2026-04-12_scaffold_reference_baseline/` |
-| `rlvr_20min_2xa100_40gb` | 1 | `scaffold_reference_baseline` | `2.1636` | Smoke-only starter baseline for grouped online coordination updates | `records/rlvr_20min_2xa100_40gb/2026-04-12_scaffold_reference_baseline/` |
-| `prompt_opt_1usd_gpt54_family` | 1 | `scaffold_reference_baseline` | `2.1608` | Smoke-only starter baseline for prompt hillclimbing under a fixed budget | `records/prompt_opt_1usd_gpt54_family/2026-04-12_scaffold_reference_baseline/` |
+| `offline_20min_1xa100_40gb` | - | - | - | Awaiting verified OvercookedV2 run | - |
+| `rlvr_20min_2xa100_40gb` | - | - | - | Awaiting verified OvercookedV2 run | - |
+| `prompt_opt_1usd_gpt54_family` | - | - | - | Awaiting verified OvercookedV2 run | - |
 
 New rows: add `records/<track>/<YYYY-MM-DD>_<name>/` and update this table in the same PR.
 

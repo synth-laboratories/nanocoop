@@ -27,4 +27,4 @@ Recommended fields in `metrics.json`:
 - `track`
 - `run_name`
 
-Starter scaffold records in this repo are **smoke-only** and should not be treated as official leaderboard entries until replaced by verified OvercookedV2 runs.
+Do not commit placeholder records. Record bundles should come from verified OvercookedV2 runs.

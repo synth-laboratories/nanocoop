@@ -1,8 +1,8 @@
 track: rlvr_20min_2xa100_40gb
-run_name: scaffold_reference_baseline
+run_name: overcookedv2_reference_baseline
 backend: overcookedv2
 benchmark_eligible: false
-output_dir: records/rlvr_20min_2xa100_40gb/2026-04-12_scaffold_reference_baseline
+output_dir: records/rlvr_20min_2xa100_40gb/2026-04-12_overcookedv2_reference_baseline
 
 model:
   name: Qwen/Qwen3.5-4B
