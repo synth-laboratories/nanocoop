@@ -24,7 +24,7 @@ dev = [
   "ruff>=0.5.0",
 ]
 overcookedv2 = [
-  "jaxmarl>=0.0.7",
+  "jaxmarl>=0.1.0",
 ]
 
 [project.scripts]

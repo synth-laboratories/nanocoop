@@ -51,7 +51,7 @@ def run(config: dict[str, Any]) -> dict[str, Any]:
     seed_prompt = str(config.get("policy", {}).get("seed_prompt", ""))
     package = make_seed_package(
         name=str(config.get("run_name", "offline_run")),
-        backend=str(config.get("backend", "mock")),
+        backend=str(config.get("backend", "overcookedv2")),
         prompt=seed_prompt,
         model_name=str(config.get("model", {}).get("name", "")) or None,
     )

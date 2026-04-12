@@ -1,6 +1,6 @@
 track: prompt_opt_1usd_gpt54_family
 run_name: smoke_baseline
-backend: mock
+backend: overcookedv2
 benchmark_eligible: false
 output_dir: outputs/prompt_opt_smoke
 

@@ -35,7 +35,7 @@ def run(config: dict[str, Any]) -> dict[str, Any]:
 
     package = make_seed_package(
         name=run_name,
-        backend=str(config.get("backend", "mock")),
+        backend=str(config.get("backend", "overcookedv2")),
         prompt=str(config.get("policy", {}).get("seed_prompt", "")),
         model_name=str(config.get("model", {}).get("name", "")) or None,
     )

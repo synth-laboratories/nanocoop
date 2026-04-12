@@ -1,6 +1,6 @@
 track: prompt_opt_1usd_gpt54_family
 run_name: scaffold_reference_baseline
-backend: mock
+backend: overcookedv2
 benchmark_eligible: false
 output_dir: records/prompt_opt_1usd_gpt54_family/2026-04-12_scaffold_reference_baseline
 

@@ -9,7 +9,7 @@ from typing import Any, Protocol
 
 import requests
 
-from nanocoop.constants import MOCK_ACTIONS
+from nanocoop.constants import COOP_ACTIONS
 from nanocoop.prompts import extract_behavior_flags, render_fewshot_examples
 from nanocoop.schema import Observation, PolicyPackage
 
@@ -76,7 +76,10 @@ class HybridLookupPolicy:
         if observation.plated and not observation.delivered:
             return "SERVE_SOUP"
 
-        if "avoid_duplicate_work" in self._flags and observation.last_partner_action == "FETCH_DISH":
+        if (
+            "avoid_duplicate_work" in self._flags
+            and observation.last_partner_action == "FETCH_DISH"
+        ):
             if not observation.ingredient_ready:
                 return "FETCH_INGREDIENT"
             if not observation.pot_ready:
@@ -100,12 +103,20 @@ class OracleTeacherPolicy:
             return "SHARE_RECIPE"
         if not observation.shared_pot_known and observation.private_pot is not None:
             return "SHARE_POT"
-        if observation.ingredient_ready and observation.pot_ready and observation.dish_ready and not observation.plated:
+        if (
+            observation.ingredient_ready
+            and observation.pot_ready
+            and observation.dish_ready
+            and not observation.plated
+        ):
             return "PLATE_SOUP"
         if observation.plated and not observation.delivered:
             return "SERVE_SOUP"
 
-        if observation.last_partner_action == "FETCH_DISH" and not observation.ingredient_ready:
+        if (
+            observation.last_partner_action == "FETCH_DISH"
+            and not observation.ingredient_ready
+        ):
             return "FETCH_INGREDIENT"
         if observation.last_partner_action == "PREP_POT" and not observation.ingredient_ready:
             return "FETCH_INGREDIENT"
@@ -145,7 +156,7 @@ class RemoteChatPolicy:
                     "content": (
                         f"{prompt}\n\n"
                         f"Respond with JSON: {{\"action\": \"...\"}} where action is one of "
-                        f"{list(MOCK_ACTIONS)}."
+                        f"{list(COOP_ACTIONS)}."
                     ),
                 },
             ],
@@ -165,9 +176,13 @@ class RemoteChatPolicy:
         return _extract_action_from_text(content)
 
     @classmethod
-    def from_config(cls, package: PolicyPackage, config: dict[str, Any]) -> "RemoteChatPolicy":
+    def from_config(
+        cls, package: PolicyPackage, config: dict[str, Any]
+    ) -> "RemoteChatPolicy":
         model_cfg = config.get("model", {})
-        api_base = os.getenv("OPENAI_API_BASE", model_cfg.get("api_base", "http://127.0.0.1:8000/v1"))
+        api_base = os.getenv(
+            "OPENAI_API_BASE", model_cfg.get("api_base", "http://127.0.0.1:8000/v1")
+        )
         api_key = os.getenv("OPENAI_API_KEY", model_cfg.get("api_key", "changeme"))
         return cls(
             package=package,
@@ -182,18 +197,24 @@ def _extract_action_from_text(content: str) -> str:
     try:
         payload = json.loads(content)
         action = str(payload.get("action", "")).strip()
-        if action in MOCK_ACTIONS:
+        if action in COOP_ACTIONS:
             return action
     except json.JSONDecodeError:
         pass
 
-    match = re.search(r"(SHARE_RECIPE|SHARE_POT|FETCH_INGREDIENT|PREP_POT|FETCH_DISH|PLATE_SOUP|SERVE_SOUP|WAIT)", content)
+    match = re.search(
+        r"(SHARE_RECIPE|SHARE_POT|FETCH_INGREDIENT|PREP_POT|"
+        r"FETCH_DISH|PLATE_SOUP|SERVE_SOUP|WAIT)",
+        content,
+    )
     if match:
         return match.group(1)
     return "WAIT"
 
 
-def make_seed_package(name: str, backend: str, prompt: str, model_name: str | None = None) -> PolicyPackage:
+def make_seed_package(
+    name: str, backend: str, prompt: str, model_name: str | None = None
+) -> PolicyPackage:
     return PolicyPackage(
         name=name,
         backend=backend,

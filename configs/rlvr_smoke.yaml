@@ -1,6 +1,6 @@
 track: rlvr_20min_2xa100_40gb
 run_name: smoke_baseline
-backend: mock
+backend: overcookedv2
 benchmark_eligible: false
 output_dir: outputs/rlvr_smoke
 

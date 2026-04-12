@@ -4,7 +4,7 @@
 
 NanoCoop mirrors the spirit of NanoHorizon, but swaps the long-horizon single-agent Craftax setting for a **cooperative, partially observable, stochastic coordination task**. Each track gives you **one Python file** containing a baseline algorithm. Your job is to write a better one.
 
-> The benchmark target is the official **OvercookedV2** environment stack via **JaxMARL** when available. This repo also includes a **self-contained smoke backend** so the full loop can run locally without GPUs or external services.
+> The benchmark target is the official **OvercookedV2** environment stack via **JaxMARL**.
 
 ---
 
@@ -46,10 +46,9 @@ NanoCoop evaluates the focal policy primarily via **cross-play** against a fixed
 
 ## Status
 
-This repo ships as a **full scaffold with runnable smoke baselines**:
+This repo ships as a **full scaffold with runnable OvercookedV2 smoke baselines**:
 
 - the **official benchmark target** is `jaxmarl` / OvercookedV2
-- the included **mock backend** is for local validation, CI, and algorithm debugging
 - starter records in `records/` are marked **`benchmark_eligible: false`** until replaced by verified OvercookedV2 runs
 
 ---
@@ -185,7 +184,7 @@ Every training track outputs a `policy_package.json` with:
 
 That keeps the repo usable in two modes:
 
-1. **Pure local smoke mode** with the included heuristic / lookup policies.
+1. **Pure local OvercookedV2 smoke mode** with the included heuristic / lookup policies.
 2. **Real LLM mode** with an OpenAI-compatible endpoint and optional external post-training artifacts.
 
 This means you can start cheap and iterate fast, then swap in the real model serving stack without changing the benchmark contract.
@@ -222,7 +221,7 @@ Important docs:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,overcookedv2]"
 make smoke
 ```
 

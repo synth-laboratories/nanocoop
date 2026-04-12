@@ -13,30 +13,11 @@ A focal policy must coordinate with **unknown partners** under:
 
 The main evaluation is **cross-play**, not self-play.
 
-## Backend modes
-
-### 1. Official backend
+## Backend
 
 The benchmark target is the official **OvercookedV2** stack via **JaxMARL** when available.
 
 Use this for real benchmark runs.
-
-### 2. Smoke backend
-
-This repo ships a local, fully self-contained **mock backend** that preserves the benchmark pressure:
-
-- each side has private information
-- partner styles differ
-- layouts induce slightly different coordination structure
-- stochastic failures require recovery
-- cross-play matters more than memorizing one convention
-
-Use this for:
-
-- CI
-- algorithm debugging
-- fast local iteration
-- baseline sanity checks
 
 ## Score
 
@@ -66,7 +47,7 @@ Policies receive a symbolic observation and emit one action from:
 - `SERVE_SOUP`
 - `WAIT`
 
-The smoke backend uses this exact action set. The official backend adapter may expose richer internal state, but the benchmark package format stays the same.
+The JaxMARL adapter translates this benchmark-level action set into primitive OvercookedV2 actions. The benchmark package format stays the same across smoke and full-size runs.
 
 ## Observation contract
 

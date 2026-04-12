@@ -36,7 +36,7 @@ def run(config: dict[str, Any]) -> dict[str, Any]:
     for idx, prompt in enumerate(candidate_prompts):
         package = make_seed_package(
             name=f"{config.get('run_name', 'prompt_opt')}_cand_{idx}",
-            backend=str(config.get("backend", "mock")),
+            backend=str(config.get("backend", "overcookedv2")),
             prompt=prompt,
             model_name=str(config.get("model", {}).get("name", "")) or None,
         )
