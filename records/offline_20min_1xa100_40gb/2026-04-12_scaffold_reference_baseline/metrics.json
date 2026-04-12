@@ -1,0 +1,15 @@
+{
+  "backend": "mock",
+  "benchmark_eligible": false,
+  "cross_partner_std": 0.1984,
+  "cross_play_mean_reward": 2.1557,
+  "mean_completion_rate": 1.0,
+  "num_action_lookup_entries": 247,
+  "num_eval_episodes": 90,
+  "num_filtered_traces": 768,
+  "num_teacher_traces": 768,
+  "primary_score": 2.1557,
+  "run_name": "scaffold_reference_baseline",
+  "self_play_mean_reward": 1.9067,
+  "track": "offline_20min_1xa100_40gb"
+}

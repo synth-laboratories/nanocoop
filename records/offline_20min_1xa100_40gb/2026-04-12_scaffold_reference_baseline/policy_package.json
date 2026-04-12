@@ -1,0 +1,595 @@
+{
+  "action_lookup": {
+    "layout=demo_cook_simple|step=0|recipe=onion|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=demo_cook_simple|step=0|recipe=tomato|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=demo_cook_simple|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_delay, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:partner_helped_fetch, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_jam, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready, dish_too_early|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_delay|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_RECIPE|event=a0:ingredient_ready, a1:wasted_share_recipe|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready, dish_too_early|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready, dish_too_early|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready, dish_too_early|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress, dish_too_early|hint=NONE": "PREP_POT",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_delay, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:pot_ready, a1:ingredient_already_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:pot_ready, a1:shared_pot|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:pot_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_delay|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:pot_ready, a1:ingredient_already_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:pot_ready, a1:shared_pot|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:dish_ready, a1:pot_already_ready|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=FETCH_DISH|event=a0:soup_plated, a1:dish_already_ready|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=FETCH_DISH|event=a0:soup_plated, a1:dish_already_ready|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=6|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=demo_cook_simple|step=6|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=0|recipe=onion|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=grounded_coord_ring|step=0|recipe=tomato|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=grounded_coord_ring|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:partner_helped_fetch, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_delay|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_delay, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:partner_helped_fetch, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_RECIPE|event=a0:ingredient_ready, a1:wasted_share_recipe|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:pot_ready, a1:shared_pot|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_jam, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:pot_ready, a1:ingredient_already_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:pot_ready, a1:shared_pot|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:dish_delay, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:dish_ready, a1:pot_already_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=FETCH_DISH|event=a0:soup_plated, a1:dish_already_ready|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=FETCH_DISH|event=a0:soup_plated, a1:dish_already_ready|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=6|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_ring|step=6|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=0|recipe=onion|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=grounded_coord_simple|step=0|recipe=tomato|pot=UNK|shared_recipe=0|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=NONE|event=NONE|hint=NONE": "SHARE_RECIPE",
+    "layout=grounded_coord_simple|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=1|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:shared_recipe, a1:wait|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=1|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:shared_recipe, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=0|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:partner_helped_fetch, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_jam, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_RECIPE|event=a0:ingredient_delay, a1:wasted_share_recipe|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_ready|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_RECIPE|event=a0:ingredient_ready, a1:wasted_share_recipe|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_delay, a1:dish_delay|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:ingredient_delay, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_delay, a1:partner_helped_fetch, duplicate_work|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_delay, a1:pot_jam, parallel_progress|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=0|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_delay, a1:shared_pot|hint=NONE": "FETCH_INGREDIENT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_delay|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_jam, parallel_progress|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:ingredient_ready, a1:shared_pot|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:ingredient_ready, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=2|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=SHARE_POT|event=a0:pot_ready, a1:shared_pot|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_jam, a1:wait|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:ingredient_ready, a1:dish_ready|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=0|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_jam, duplicate_work|hint=NONE": "PREP_POT",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_delay, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=FETCH_INGREDIENT|event=a0:pot_ready, a1:ingredient_already_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:ingredient_ready, a1:pot_ready, parallel_progress|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:pot_ready, a1:dish_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=3|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_jam, a1:pot_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:dish_delay, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:dish_ready, a1:pot_already_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=0|plated=0|delivered=0|partner=WAIT|event=a0:pot_ready, a1:wait|hint=NONE": "FETCH_DISH",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_delay, a1:dish_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:pot_ready, a1:pot_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=4|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:dish_ready, a1:pot_already_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=WAIT|event=a0:dish_ready, a1:wait|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=FETCH_DISH|event=a0:soup_plated, a1:dish_already_ready|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=FETCH_DISH|event=a0:dish_ready, a1:dish_already_ready, duplicate_work|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=0|delivered=0|partner=PREP_POT|event=a0:dish_ready, a1:pot_already_ready|hint=NONE": "PLATE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=5|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=6|recipe=onion|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=6|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=PLATE_SOUP|event=a0:soup_plated, a1:already_plated|hint=NONE": "SERVE_SOUP",
+    "layout=grounded_coord_simple|step=6|recipe=tomato|pot=UNK|shared_recipe=1|shared_pot=1|ingredient=1|pot_ready=1|dish=1|plated=1|delivered=0|partner=WAIT|event=a0:soup_plated, a1:wait|hint=NONE": "SERVE_SOUP"
+  },
+  "adapter_path": null,
+  "backend": "mock",
+  "behavior_flags": [
+    "avoid_duplicate_work",
+    "complement_partner",
+    "finish_pipeline",
+    "share_hidden_info_early"
+  ],
+  "fewshot_examples": [
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_jam, a1:pot_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_jam, a1:pot_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_jam, a1:pot_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_jam, a1:pot_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_jam, a1:pot_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_jam, a1:pot_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_jam, a1:pot_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.19
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_delay, a1:dish_delay\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_delay, a1:dish_delay\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:dish_delay\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_jam, a1:pot_jam, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.91
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_delay, a1:dish_delay\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.05
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SHARE_RECIPE",
+      "observation": "layout: grounded_coord_simple\nstep: 0/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: False\nshared_pot_known: False\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: none\nlast_joint_event: none\nconvention_hint: none\nrecent_events:\n- none\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 1/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: SHARE_POT\nlast_joint_event: a0:shared_recipe, a1:shared_pot\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:ingredient_ready, a1:dish_ready\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:dish_ready\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.22
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: tomato\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_ready, parallel_progress\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.4
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_jam, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_jam, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "PREP_POT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: False\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_ready, a1:pot_jam, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.84
+    },
+    {
+      "action": "FETCH_DISH",
+      "observation": "layout: grounded_coord_simple\nstep: 3/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:pot_ready, a1:pot_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "PLATE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 4/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: False\ndelivered: False\nlast_partner_action: FETCH_DISH\nlast_joint_event: a0:dish_ready, a1:dish_already_ready, duplicate_work\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_ready, a1:pot_jam, parallel_progress\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.12
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_delay, a1:dish_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.84
+    },
+    {
+      "action": "SERVE_SOUP",
+      "observation": "layout: grounded_coord_simple\nstep: 5/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: True\npot_ready: True\ndish_ready: True\nplated: True\ndelivered: False\nlast_partner_action: PLATE_SOUP\nlast_joint_event: a0:soup_plated, a1:already_plated\nconvention_hint: none\nrecent_events:\n- a0:ingredient_ready, a1:ingredient_already_ready, duplicate_work\n- a0:pot_ready, a1:pot_already_ready, duplicate_work\n- a0:dish_ready, a1:dish_already_ready, duplicate_work\n- a0:soup_plated, a1:already_plated\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 1.85
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_delay, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.49
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_delay, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.49
+    },
+    {
+      "action": "FETCH_INGREDIENT",
+      "observation": "layout: grounded_coord_simple\nstep: 2/8\nprivate_recipe: onion\nprivate_pot: unknown\nshared_recipe_known: True\nshared_pot_known: True\ningredient_ready: False\npot_ready: True\ndish_ready: False\nplated: False\ndelivered: False\nlast_partner_action: PREP_POT\nlast_joint_event: a0:ingredient_delay, a1:pot_ready, parallel_progress\nconvention_hint: none\nrecent_events:\n- a0:shared_recipe, a1:shared_pot\n- a0:ingredient_delay, a1:pot_ready, parallel_progress\navailable_actions: SHARE_RECIPE, SHARE_POT, FETCH_INGREDIENT, PREP_POT, FETCH_DISH, PLATE_SOUP, SERVE_SOUP, WAIT",
+      "return": 2.49
+    }
+  ],
+  "metadata": {
+    "algorithm": "offline_sft_scaffold",
+    "dataset_summary": {
+      "mean_return": 2.0921875,
+      "num_traces": 768,
+      "success_rate": 1.0
+    },
+    "num_filtered_traces": 768,
+    "num_teacher_traces": 768,
+    "track": "offline_20min_1xa100_40gb"
+  },
+  "model": "Qwen/Qwen3.5-4B",
+  "name": "scaffold_reference_baseline",
+  "system_prompt": "You are a cooperative cooking agent.\nShare hidden info early.\nComplement your partner.\nAvoid duplicate work.\nFinish the soup."
+}

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanocoop"
+version = "0.1.0"
+description = "NanoCoop: post-training benchmark scaffold for cooperative LLM agents on OvercookedV2"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "OpenAI"},
+]
+dependencies = [
+  "numpy>=1.26",
+  "PyYAML>=6.0",
+  "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5.0",
+]
+overcookedv2 = [
+  "jaxmarl>=0.0.7",
+]
+
+[project.scripts]
+nanocoop = "nanocoop.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

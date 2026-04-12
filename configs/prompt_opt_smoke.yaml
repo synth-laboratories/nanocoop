@@ -1,0 +1,37 @@
+track: prompt_opt_1usd_gpt54_family
+run_name: smoke_baseline
+backend: mock
+benchmark_eligible: false
+output_dir: outputs/prompt_opt_smoke
+
+model:
+  name: smoke-local
+
+optimizer_model:
+  family: gpt-5.4
+  budget_usd: 0.05
+
+policy:
+  seed_prompt: |
+    You are a cooperative cooking agent.
+    Share hidden info early.
+
+env:
+  train_layouts: [grounded_coord_simple, demo_cook_simple]
+  eval_layouts: [test_time_simple]
+  train_seeds: [1, 2]
+  eval_seeds: [3, 4]
+  max_steps: 8
+  stochasticity: 0.08
+
+partner_zoo:
+  train: [courier, potter, handoff]
+  eval: [courier, potter, handoff]
+
+prompt_opt:
+  max_candidates: 8
+  probe_episodes_per_candidate: 6
+  clauses:
+    - Infer your partner's convention from their first informative action.
+    - Avoid duplicate work.
+    - Finish the soup before chasing side tasks.

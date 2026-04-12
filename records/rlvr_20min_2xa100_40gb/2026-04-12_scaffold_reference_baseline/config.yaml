@@ -1,0 +1,58 @@
+track: rlvr_20min_2xa100_40gb
+run_name: scaffold_reference_baseline
+backend: mock
+benchmark_eligible: false
+output_dir: records/rlvr_20min_2xa100_40gb/2026-04-12_scaffold_reference_baseline
+model:
+  name: Qwen/Qwen3.5-4B
+  temperature: 0.2
+  max_tokens: 128
+policy:
+  seed_prompt: 'You are a cooperative cooking agent.
+
+    Share hidden info early.
+
+    Complement your partner.
+
+    '
+env:
+  train_layouts:
+  - grounded_coord_simple
+  - grounded_coord_ring
+  - demo_cook_simple
+  eval_layouts:
+  - test_time_simple
+  - test_time_wide
+  - demo_cook_wide
+  train_seeds:
+  - 41
+  - 43
+  - 47
+  - 53
+  - 59
+  - 61
+  eval_seeds:
+  - 131
+  - 137
+  - 139
+  - 149
+  - 151
+  - 157
+  max_steps: 8
+  stochasticity: 0.15
+partner_zoo:
+  train:
+  - courier
+  - potter
+  - handoff
+  - noisy
+  eval:
+  - courier
+  - potter
+  - handoff
+  - noisy
+rlvr:
+  iterations: 5
+  episodes_per_iteration: 18
+  exploration_rate: 0.18
+  min_improvement_to_keep: 0.0

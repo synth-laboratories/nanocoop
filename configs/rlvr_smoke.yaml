@@ -1,0 +1,31 @@
+track: rlvr_20min_2xa100_40gb
+run_name: smoke_baseline
+backend: mock
+benchmark_eligible: false
+output_dir: outputs/rlvr_smoke
+
+model:
+  name: smoke-local
+
+policy:
+  seed_prompt: |
+    You are a cooperative cooking agent.
+    Share hidden info early.
+
+env:
+  train_layouts: [grounded_coord_simple, demo_cook_simple]
+  eval_layouts: [test_time_simple]
+  train_seeds: [1, 2, 3]
+  eval_seeds: [4, 5]
+  max_steps: 8
+  stochasticity: 0.08
+
+partner_zoo:
+  train: [courier, potter, handoff]
+  eval: [courier, potter, handoff]
+
+rlvr:
+  iterations: 3
+  episodes_per_iteration: 8
+  exploration_rate: 0.15
+  min_improvement_to_keep: 0.0

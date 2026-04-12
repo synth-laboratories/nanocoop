@@ -1,0 +1,26 @@
+{
+  "action_lookup": {},
+  "adapter_path": null,
+  "backend": "mock",
+  "behavior_flags": [
+    "share_hidden_info_early"
+  ],
+  "fewshot_examples": [],
+  "metadata": {
+    "algorithm": "prompt_opt_scaffold",
+    "best_probe_score": 2.1125,
+    "candidate_notes": [
+      "candidate 0: probe_score=2.1125 flags=['share_hidden_info_early']",
+      "candidate 1: probe_score=2.1125 flags=['share_hidden_info_early']",
+      "candidate 2: probe_score=2.1125 flags=['infer_partner_convention', 'share_hidden_info_early']",
+      "candidate 3: probe_score=2.1125 flags=['avoid_duplicate_work', 'infer_partner_convention', 'share_hidden_info_early']",
+      "candidate 4: probe_score=2.1125 flags=['avoid_duplicate_work', 'infer_partner_convention', 'recover_from_failures', 'share_hidden_info_early']",
+      "candidate 5: probe_score=2.1125 flags=['avoid_duplicate_work', 'infer_partner_convention', 'prefer_complementary_roles', 'recover_from_failures', 'share_hidden_info_early']",
+      "candidate 6: probe_score=2.1125 flags=['avoid_duplicate_work', 'finish_pipeline', 'infer_partner_convention', 'prefer_complementary_roles', 'recover_from_failures', 'share_hidden_info_early']"
+    ],
+    "track": "prompt_opt_1usd_gpt54_family"
+  },
+  "model": "Qwen/Qwen3.5-4B",
+  "name": "scaffold_reference_baseline_cand_0",
+  "system_prompt": "You are a cooperative cooking agent.\nShare hidden info early."
+}

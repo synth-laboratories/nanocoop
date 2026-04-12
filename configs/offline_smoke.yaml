@@ -1,0 +1,35 @@
+track: offline_20min_1xa100_40gb
+run_name: smoke_baseline
+backend: mock
+benchmark_eligible: false
+output_dir: outputs/offline_smoke
+
+model:
+  name: smoke-local
+
+teacher_model:
+  name: oracle-smoke
+
+policy:
+  seed_prompt: |
+    You are a cooperative cooking agent.
+    Share hidden info early.
+    Complement your partner.
+
+env:
+  train_layouts: [grounded_coord_simple, demo_cook_simple]
+  eval_layouts: [test_time_simple]
+  train_seeds: [1, 2, 3]
+  eval_seeds: [4, 5]
+  max_steps: 8
+  stochasticity: 0.08
+
+partner_zoo:
+  train: [courier, potter, handoff]
+  eval: [courier, potter, handoff]
+
+offline:
+  teacher_episodes_per_pair: 3
+  min_return_threshold: 0.8
+  max_examples_per_signature: 2
+  min_votes: 1
