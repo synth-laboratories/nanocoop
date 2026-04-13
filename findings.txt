@@ -1,0 +1,11 @@
+2026-04-13: Repo checkout was effectively empty at start of task. Only `README.md`
+and an empty `project/` directory were present; no `docs/`, `configs/`, or
+starter scripts existed.
+2026-04-13: Added a minimal starter-policy scaffold under `nanocoop/`,
+`configs/`, `docs/`, and `scripts/` so the repo has a reviewable cooperative
+guardrail change plus a deterministic smoke eval.
+2026-04-13: Smoke eval comparison on the local scenario slice returned baseline
+4/10 and candidate 10/10 using `./scripts/run_starter_agent_gpt41_nano.sh --no-self-play --workers 4 --episodes 1,2 --no-gif`.
+2026-04-13: Pushed commit `72f159c0822bafb4f5691bd1dcfce97096fd61ee` on branch
+`coop-guardrail-smoke-v2` and opened GitHub PR
+`https://github.com/synth-laboratories/nano-coop/pull/1`.

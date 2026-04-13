@@ -1,0 +1,100 @@
+{
+  "baseline": {
+    "config": {
+      "cooperation_prompt": "Act as a cooperative Overcooked partner. Keep the shared plan intact, avoid duplicating your partner's job, and choose the smallest safe action that unlocks the next joint step. If the partner is already covering a task, support by clearing space, staging handoff resources, or advancing the next shared step rather than idling or emitting no-op communication.",
+      "model": "gpt-4.1-nano",
+      "no_op_actions": [
+        "noop",
+        "no_op",
+        "idle",
+        "wait_if_unknown"
+      ],
+      "partner_aware_guardrails": false,
+      "plan_horizon": 4,
+      "policy_decision_interval": 8
+    },
+    "max_score": 10,
+    "rows": [
+      {
+        "action": "advance_recipe",
+        "name": "partner-needs-space",
+        "preferred": "clear_path",
+        "score": 0
+      },
+      {
+        "action": "advance_recipe",
+        "name": "partner-has-needed-item",
+        "preferred": "prep_handoff",
+        "score": 0
+      },
+      {
+        "action": "advance_recipe",
+        "name": "own-blocked",
+        "preferred": "hold_position",
+        "score": 0
+      },
+      {
+        "action": "advance_recipe",
+        "name": "solo-progress-urgent",
+        "preferred": "advance_recipe",
+        "score": 2
+      },
+      {
+        "action": "advance_recipe",
+        "name": "neutral-coordination",
+        "preferred": "advance_recipe",
+        "score": 2
+      }
+    ],
+    "total_score": 4
+  },
+  "candidate": {
+    "config": {
+      "cooperation_prompt": "Act as a cooperative Overcooked partner. Keep the shared plan intact, avoid duplicating your partner's job, and choose the smallest safe action that unlocks the next joint step. If the partner is already covering a task, support by clearing space, staging handoff resources, or advancing the next shared step rather than idling or emitting no-op communication.",
+      "model": "gpt-4.1-nano",
+      "no_op_actions": [
+        "noop",
+        "no_op",
+        "idle",
+        "wait_if_unknown"
+      ],
+      "partner_aware_guardrails": true,
+      "plan_horizon": 4,
+      "policy_decision_interval": 8
+    },
+    "max_score": 10,
+    "rows": [
+      {
+        "action": "clear_path",
+        "name": "partner-needs-space",
+        "preferred": "clear_path",
+        "score": 2
+      },
+      {
+        "action": "prep_handoff",
+        "name": "partner-has-needed-item",
+        "preferred": "prep_handoff",
+        "score": 2
+      },
+      {
+        "action": "hold_position",
+        "name": "own-blocked",
+        "preferred": "hold_position",
+        "score": 2
+      },
+      {
+        "action": "advance_recipe",
+        "name": "solo-progress-urgent",
+        "preferred": "advance_recipe",
+        "score": 2
+      },
+      {
+        "action": "advance_recipe",
+        "name": "neutral-coordination",
+        "preferred": "advance_recipe",
+        "score": 2
+      }
+    ],
+    "total_score": 10
+  }
+}

@@ -1,0 +1,9 @@
+2026-04-13T04:00:00Z - Initial inspection showed the repository tree was nearly
+empty. Confirmed `README.md` existed but `docs/task-overcooked-v2.md` and
+`configs/starter_agent_gpt41_nano_overcooked_v2.yaml` were absent.
+2026-04-13T04:12:00Z - Implemented a narrow partner-aware guardrail in the
+starter policy and added a smoke eval that compares baseline vs candidate on a
+small cooperative scenario slice.
+2026-04-13T04:15:00Z - Ran `NANOCOOP_TIMEOUT_SECONDS=180 ./scripts/run_starter_agent_gpt41_nano.sh --no-self-play --workers 4 --episodes 1,2 --no-gif`.
+Result: baseline 4/10, candidate 10/10 on the local smoke slice. The artifact was
+written to `artifacts/honest_eval_slice.json`.
