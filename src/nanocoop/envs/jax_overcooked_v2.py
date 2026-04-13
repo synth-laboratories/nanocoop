@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -43,7 +45,7 @@ class JaxOvercookedV2Backend:
         except Exception as exc:  # pragma: no cover - dependency-gated path
             raise RuntimeError(
                 "The JAX OvercookedV2 backend requires the optional 'overcookedv2' "
-                "dependencies. Install with: pip install -e '.[overcookedv2]'"
+                "dependencies. Install with: uv sync --extra overcookedv2"
             ) from exc
         self.jax = jax
         self.Actions = Actions
@@ -62,6 +64,9 @@ class JaxOvercookedV2Backend:
         self.sample_recipe_on_delivery = bool(
             env_cfg.get("sample_recipe_on_delivery", False)
         )
+        self.policy_decision_interval = max(
+            1, int(env_cfg.get("policy_decision_interval", 1))
+        )
         self._env_cache: dict[str, Any] = {}
 
     def rollout(
@@ -73,6 +78,7 @@ class JaxOvercookedV2Backend:
         seed: int,
         partner_name: str,
         mode: str = "cross_play",
+        capture_states: bool = False,
     ) -> EpisodeTrace:
         env = self._env(layout)
         key = self.jax.random.PRNGKey(int(seed))
@@ -85,6 +91,8 @@ class JaxOvercookedV2Backend:
         last_actions: tuple[str | None, str | None] = (None, None)
         last_event: str | None = None
         recent_events: list[str] = []
+        state_sequence = [state] if capture_states else None
+        cached_policy_actions: tuple[str | None, str | None] = (None, None)
 
         for step_index in range(self.max_steps):
             obs0 = self._observation(
@@ -92,6 +100,7 @@ class JaxOvercookedV2Backend:
                 state=state,
                 agent_index=0,
                 layout=layout,
+                partner_name=partner_name,
                 step_index=step_index,
                 last_partner_action=last_actions[1],
                 last_event=last_event,
@@ -102,13 +111,23 @@ class JaxOvercookedV2Backend:
                 state=state,
                 agent_index=1,
                 layout=layout,
+                partner_name=partner_name,
                 step_index=step_index,
                 last_partner_action=last_actions[0],
                 last_event=last_event,
                 recent_events=recent_events,
             )
-            action0_name = str(focal_policy.act(obs0))
+            should_refresh_policy = (
+                step_index == 0
+                or step_index % self.policy_decision_interval == 0
+                or last_event == "soup_delivered"
+            )
+            if should_refresh_policy or cached_policy_actions[0] is None:
+                action0_name = str(focal_policy.act(obs0))
+            else:
+                action0_name = str(cached_policy_actions[0])
             action1_name = str(partner_policy.act(obs1))
+            cached_policy_actions = (action0_name, action1_name)
             primitive0 = self._primitive_action(
                 state, agent_index=0, action_name=action0_name
             )
@@ -122,6 +141,8 @@ class JaxOvercookedV2Backend:
                 state,
                 {"agent_0": primitive0, "agent_1": primitive1},
             )
+            if state_sequence is not None:
+                state_sequence.append(state)
             reward = float(np.asarray(rewards["agent_0"]))
             total_reward += reward
             delivered = delivered or self._delivered(state=state, reward=reward)
@@ -147,9 +168,24 @@ class JaxOvercookedV2Backend:
             )
             last_actions = (action0_name, action1_name)
             last_event = event
-            if bool(np.asarray(dones["__all__"])):
+            if delivered or bool(np.asarray(dones["__all__"])):
                 break
 
+        metadata: dict[str, Any] = {
+            "mode": mode,
+            "backend": "jax_overcooked_v2",
+            "max_steps": self.max_steps,
+            "primitive_action_space": [
+                "right",
+                "down",
+                "left",
+                "up",
+                "stay",
+                "interact",
+            ],
+        }
+        if state_sequence is not None:
+            metadata["state_sequence"] = state_sequence
         return EpisodeTrace(
             layout=layout,
             seed=int(seed),
@@ -157,20 +193,22 @@ class JaxOvercookedV2Backend:
             total_reward=round(total_reward, 4),
             success=delivered,
             steps=steps,
-            metadata={
-                "mode": mode,
-                "backend": "jax_overcooked_v2",
-                "max_steps": self.max_steps,
-                "primitive_action_space": [
-                    "right",
-                    "down",
-                    "left",
-                    "up",
-                    "stay",
-                    "interact",
-                ],
-            },
+            metadata=metadata,
         )
+
+    def write_rollout_gif(self, trace: EpisodeTrace, path: str | Path) -> Path:
+        state_sequence = trace.metadata.get("state_sequence")
+        if not state_sequence:
+            raise ValueError("rollout trace does not include captured states")
+        import jax
+        import jax.numpy as jnp
+        from jaxmarl.viz.overcooked_v2_visualizer import OvercookedV2Visualizer
+
+        state_seq = jax.tree_util.tree_map(lambda *xs: jnp.stack(xs), *state_sequence)
+        out = Path(path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        OvercookedV2Visualizer().animate(state_seq, filename=str(out))
+        return out
 
     def _env(self, layout: str):
         if layout not in self._env_cache:
@@ -192,6 +230,7 @@ class JaxOvercookedV2Backend:
         state,
         agent_index: int,
         layout: str,
+        partner_name: str,
         step_index: int,
         last_partner_action: str | None,
         last_event: str | None,
@@ -248,13 +287,50 @@ class JaxOvercookedV2Backend:
             available_actions=tuple(
                 sorted(MACRO_ACTIONS | {a.upper() for a in PRIMITIVE_ACTIONS})
             ),
+            convention_hint=self._convention_hint(layout=layout, partner_name=partner_name),
             recent_events=tuple(recent_events[-4:]),
             metadata={
+                "partner_name": partner_name,
                 "agent_position": self._agent_pos(state, agent_index),
+                "partner_position": self._agent_pos(state, 1 - agent_index),
                 "agent_direction": int(np.asarray(state.agents.dir[agent_index])),
-                "inventory": inventory,
+                "inventory": self._inventory_text(inventory),
+                "can_reach_ingredient": self._can_reach_target(
+                    state, agent_index=agent_index, target_kind="ingredient_pile"
+                ),
+                "can_reach_pot": self._can_reach_target(
+                    state, agent_index=agent_index, target_kind="pot"
+                ),
+                "can_reach_plate": self._can_reach_target(
+                    state, agent_index=agent_index, target_kind="plate_pile"
+                ),
+                "can_reach_goal": self._can_reach_target(
+                    state, agent_index=agent_index, target_kind="goal"
+                ),
+                "pot_ingredient_count": self._max_pot_ingredient_count(
+                    static=static, dynamic=dynamic
+                ),
+                "pot_full": self._max_pot_ingredient_count(
+                    static=static, dynamic=dynamic
+                )
+                >= 3,
+                "nearby": self._nearby_static_summary(
+                    static=static, state=state, agent_index=agent_index
+                ),
+                "pots": self._pot_summaries(static=static, dynamic=dynamic, extra=extra),
+                "loose_objects": self._loose_object_summary(dynamic=dynamic),
             },
         )
+
+    def _convention_hint(self, *, layout: str, partner_name: str) -> str:
+        layout_hint = "wide layout: commit to one role long enough to finish it." if "wide" in layout else "compact layout: adapt quickly and avoid duplicate work."
+        partner_hint = {
+            "courier": "partner courier often handles dish delivery support, so you can spend more time on pot progress.",
+            "potter": "partner potter tends to fill pots, so bias toward dish pickup, plating, and delivery.",
+            "handoff": "partner handoff mirrors recent work, so choose a clear complementary role and stick to it.",
+            "noisy": "partner noisy is unreliable, so prefer self-sufficient plans that can still finish the soup.",
+        }.get(partner_name, "complement your partner and avoid duplicate work.")
+        return f"{layout_hint} {partner_hint}"
 
     def _primitive_action(self, state, *, agent_index: int, action_name: str):
         action = action_name.strip()
@@ -292,35 +368,105 @@ class JaxOvercookedV2Backend:
         static = np.asarray(state.grid[:, :, 0])
         dynamic = np.asarray(state.grid[:, :, 1])
         agent_pos = self._agent_pos(state, agent_index)
+        recipe_ingredients = self._recipe_ingredient_indices(state)
         targets = self._target_positions(
-            static=static, dynamic=dynamic, target_kind=target_kind
+            static=static,
+            dynamic=dynamic,
+            target_kind=target_kind,
+            recipe_ingredients=recipe_ingredients,
         )
         if not targets:
             return self.Actions.stay
-        target = min(
-            targets,
-            key=lambda pos: abs(pos[0] - agent_pos[0]) + abs(pos[1] - agent_pos[1]),
+        route = self._route_to_interaction_target(
+            static=static,
+            agent_pos=agent_pos,
+            current_direction=int(np.asarray(state.agents.dir[agent_index])),
+            targets=targets,
         )
-        delta = (target[0] - agent_pos[0], target[1] - agent_pos[1])
-        if abs(delta[0]) + abs(delta[1]) == 1:
-            desired_direction = self._direction_for_delta(delta)
-            current_direction = int(np.asarray(state.agents.dir[agent_index]))
-            if desired_direction is not None and current_direction == int(desired_direction):
-                return self.Actions.interact
-            return self._action_for_direction(desired_direction)
+        if route is None:
+            return self.Actions.stay
+        if route == "interact":
+            return self.Actions.interact
+        return self._action_for_direction(route)
 
-        for direction, move_delta in self._ranked_directions(delta):
-            next_pos = (agent_pos[0] + move_delta[0], agent_pos[1] + move_delta[1])
-            if self._is_open(static, next_pos):
-                return self._action_for_direction(direction)
-        return self.Actions.stay
+    def _can_reach_target(self, state, *, agent_index: int, target_kind: str) -> bool:
+        static = np.asarray(state.grid[:, :, 0])
+        dynamic = np.asarray(state.grid[:, :, 1])
+        targets = self._target_positions(
+            static=static,
+            dynamic=dynamic,
+            target_kind=target_kind,
+            recipe_ingredients=self._recipe_ingredient_indices(state),
+        )
+        return (
+            self._route_to_interaction_target(
+                static=static,
+                agent_pos=self._agent_pos(state, agent_index),
+                current_direction=int(np.asarray(state.agents.dir[agent_index])),
+                targets=targets,
+            )
+            is not None
+        )
+
+    def _route_to_interaction_target(
+        self,
+        *,
+        static: np.ndarray,
+        agent_pos: tuple[int, int],
+        current_direction: int,
+        targets: list[tuple[int, int]],
+    ):
+        target_set = set(targets)
+        for direction, move_delta in self._ranked_directions((0, 0)):
+            adjacent = (agent_pos[0] + move_delta[0], agent_pos[1] + move_delta[1])
+            if adjacent in target_set:
+                if current_direction == int(direction):
+                    return "interact"
+                return direction
+
+        goals = set()
+        goal_to_direction = {}
+        for target in targets:
+            for direction, move_delta in self._ranked_directions((0, 0)):
+                goal = (target[0] - move_delta[0], target[1] - move_delta[1])
+                if self._is_open(static, goal):
+                    goals.add(goal)
+                    goal_to_direction[goal] = direction
+        if not goals:
+            return None
+
+        queue = deque([(agent_pos, [])])
+        seen = {agent_pos}
+        while queue:
+            pos, path = queue.popleft()
+            if pos in goals:
+                if path:
+                    return path[0]
+                return goal_to_direction[pos]
+            for direction, move_delta in self._ranked_directions((0, 0)):
+                nxt = (pos[0] + move_delta[0], pos[1] + move_delta[1])
+                if nxt in seen or not self._is_open(static, nxt):
+                    continue
+                seen.add(nxt)
+                queue.append((nxt, [*path, direction]))
+        return None
 
     def _target_positions(
-        self, *, static: np.ndarray, dynamic: np.ndarray, target_kind: str
+        self,
+        *,
+        static: np.ndarray,
+        dynamic: np.ndarray,
+        target_kind: str,
+        recipe_ingredients: list[int] | None = None,
     ) -> list[tuple[int, int]]:
         del dynamic
         if target_kind == "ingredient_pile":
-            mask = static >= int(self.StaticObject.INGREDIENT_PILE_BASE)
+            if recipe_ingredients:
+                mask = np.zeros_like(static, dtype=bool)
+                for ingredient_idx in recipe_ingredients:
+                    mask |= static == int(self.StaticObject.INGREDIENT_PILE_BASE) + ingredient_idx
+            else:
+                mask = static >= int(self.StaticObject.INGREDIENT_PILE_BASE)
         elif target_kind == "plate_pile":
             mask = static == int(self.StaticObject.PLATE_PILE)
         elif target_kind == "pot":
@@ -408,12 +554,34 @@ class JaxOvercookedV2Backend:
             mask |= int(self.DynamicObject.ingredient(idx))
         return mask
 
+    def _inventory_text(self, inventory: int) -> str:
+        parts: list[str] = []
+        if inventory & int(self.DynamicObject.PLATE):
+            parts.append("plate")
+        if inventory & int(self.DynamicObject.COOKED):
+            parts.append("cooked_soup")
+        parts.extend(self._ingredient_names(inventory))
+        return ",".join(parts) if parts else "empty"
+
     def _recipe_text(self, recipe_encoding: int) -> str:
         try:
-            ingredients = self.DynamicObject.get_ingredient_idx_list(recipe_encoding)
+            ingredients = self.DynamicObject.get_ingredient_idx_list(
+                np.asarray(recipe_encoding)
+            )
         except Exception:
             ingredients = []
         return ",".join(f"ingredient_{idx}" for idx in ingredients) or "unknown"
+
+    def _recipe_ingredient_indices(self, state) -> list[int]:
+        try:
+            return [
+                int(idx)
+                for idx in self.DynamicObject.get_ingredient_idx_list(
+                    np.asarray(int(np.asarray(state.recipe)))
+                )
+            ]
+        except Exception:
+            return []
 
     def _nearest_pot_summary(
         self,
@@ -425,7 +593,9 @@ class JaxOvercookedV2Backend:
         state,
     ) -> str:
         agent_pos = self._agent_pos(state, agent_index)
-        pots = self._target_positions(static=static, dynamic=dynamic, target_kind="pot")
+        pots = self._target_positions(
+            static=static, dynamic=dynamic, target_kind="pot"
+        )
         if not pots:
             return "none"
         x, y = min(pots, key=lambda pos: abs(pos[0] - agent_pos[0]) + abs(pos[1] - agent_pos[1]))
@@ -434,6 +604,94 @@ class JaxOvercookedV2Backend:
         timer = int(extra[y, x])
         count = self._ingredient_count(pot_dynamic)
         return f"nearest_pot ingredients={count} cooked={cooked} timer={timer}"
+
+    def _pot_summaries(
+        self, *, static: np.ndarray, dynamic: np.ndarray, extra: np.ndarray
+    ) -> str:
+        pots = self._target_positions(
+            static=static, dynamic=dynamic, target_kind="pot"
+        )
+        if not pots:
+            return "none"
+        summaries = []
+        for x, y in pots[:4]:
+            pot_dynamic = int(dynamic[y, x])
+            cooked = bool(pot_dynamic & int(self.DynamicObject.COOKED))
+            timer = int(extra[y, x])
+            ingredients = self._ingredient_names(pot_dynamic)
+            ingredient_text = ",".join(ingredients) if ingredients else "empty"
+            summaries.append(
+                f"({x},{y}) ingredients={ingredient_text} cooked={cooked} timer={timer}"
+            )
+        return "; ".join(summaries)
+
+    def _max_pot_ingredient_count(self, *, static: np.ndarray, dynamic: np.ndarray) -> int:
+        pots = self._target_positions(
+            static=static, dynamic=dynamic, target_kind="pot"
+        )
+        if not pots:
+            return 0
+        return max(self._ingredient_count(int(dynamic[y, x])) for x, y in pots)
+
+    def _loose_object_summary(self, *, dynamic: np.ndarray) -> str:
+        summaries = []
+        plate_count = int(np.sum((dynamic & int(self.DynamicObject.PLATE)) > 0))
+        cooked_count = int(np.sum((dynamic & int(self.DynamicObject.COOKED)) > 0))
+        ingredient_cells = int(np.sum((dynamic & self._ingredient_mask()) > 0))
+        if plate_count:
+            summaries.append(f"plates={plate_count}")
+        if cooked_count:
+            summaries.append(f"cooked={cooked_count}")
+        if ingredient_cells:
+            summaries.append(f"ingredient_cells={ingredient_cells}")
+        return ", ".join(summaries) if summaries else "none"
+
+    def _nearby_static_summary(
+        self, *, static: np.ndarray, state, agent_index: int
+    ) -> str:
+        x, y = self._agent_pos(state, agent_index)
+        names = []
+        for label, (dx, dy) in {
+            "right": (1, 0),
+            "down": (0, 1),
+            "left": (-1, 0),
+            "up": (0, -1),
+        }.items():
+            pos = (x + dx, y + dy)
+            if (
+                pos[0] < 0
+                or pos[1] < 0
+                or pos[1] >= static.shape[0]
+                or pos[0] >= static.shape[1]
+            ):
+                names.append(f"{label}=bounds")
+                continue
+            names.append(f"{label}={self._static_name(int(static[pos[1], pos[0]]))}")
+        return ", ".join(names)
+
+    def _static_name(self, value: int) -> str:
+        if value == int(self.StaticObject.EMPTY):
+            return "empty"
+        if value == int(self.StaticObject.WALL):
+            return "wall"
+        if value == int(self.StaticObject.POT):
+            return "pot"
+        if value == int(self.StaticObject.GOAL):
+            return "goal"
+        if value == int(self.StaticObject.PLATE_PILE):
+            return "plate_pile"
+        if value >= int(self.StaticObject.INGREDIENT_PILE_BASE):
+            return f"ingredient_pile_{value - int(self.StaticObject.INGREDIENT_PILE_BASE)}"
+        return f"static_{value}"
+
+    def _ingredient_names(self, dynamic_value: int) -> list[str]:
+        try:
+            ingredients = self.DynamicObject.get_ingredient_idx_list(
+                np.asarray(dynamic_value)
+            )
+        except Exception:
+            ingredients = []
+        return [f"ingredient_{idx}" for idx in ingredients]
 
     def _ingredient_count(self, dynamic_value: int) -> int:
         obj = int(dynamic_value) >> 2

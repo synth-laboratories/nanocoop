@@ -25,7 +25,9 @@ There are two ways to win:
 1. **Higher score** — get more cooperative return against held-out partners and layouts under the same budget.
 2. **Higher throughput** — get the same score faster, or more lift per minute / dollar.
 
-Base model target for the main tracks: `Qwen/Qwen3.5-4B`, unless a track doc states otherwise.
+Starter policy target for the first public baseline: `gpt-4.1-nano`.
+
+Open-model target for the main training tracks: `Qwen/Qwen3.5-4B`, unless a track doc states otherwise. The Qwen configs stay in-tree so the benchmark can move to NanoHorizon-style open-model runs once serving is ready.
 
 ---
 
@@ -49,6 +51,8 @@ NanoCoop evaluates the focal policy primarily via **cross-play** against a fixed
 This repo ships as a **full scaffold with runnable OvercookedV2 smoke baselines**:
 
 - the **official benchmark target** is `jaxmarl` / OvercookedV2
+- the first no-change policy baseline is `gpt-4.1-nano` in real LLM mode
+- the Qwen3.5 configs remain available as the forward open-model target
 - `records/` starts empty except for documentation; add rows only after verified OvercookedV2 runs
 
 ---
@@ -65,6 +69,35 @@ New rows: add `records/<track>/<YYYY-MM-DD>_<name>/` and update this table in th
 
 ---
 
+## Starter Agent Baseline
+
+Before changing any training code, score the no-change focal agent:
+
+```bash
+./scripts/run_starter_agent_gpt41_nano.sh
+```
+
+Requires `OPENAI_API_KEY` in the environment.
+
+This evaluates the seed coordination prompt in `gpt-4.1-nano` against the public partner zoo on held-out OvercookedV2 layouts and seeds. The resulting `cross_play_mean_reward` is the baseline-to-beat for method development.
+
+The starter agent is intentionally cheap and closed-model. NanoCoop should reward better coordination methods, data selection, rollout strategy, prompt search, and partner adaptation, not model-scale changes. The baseline asks the model for short cooperative macro-action plans, then executes those plans for several environment ticks before replanning. The run scripts stop after 180 seconds by default for fast iteration; set `NANOCOOP_TIMEOUT_SECONDS=0` for full benchmark records. The initial action set contains cooking and movement actions only; explicit communication actions are excluded until the environment adapter supports them as real state-changing actions.
+
+The checked-in starter record under `records/starter_agent/` is the public no-change baseline reference. It is not a leaderboard submission for the training tracks.
+
+---
+
+## Official v0.1 contract
+
+- Official v0.1 score uses the pinned default 20 cross-play episodes in config.
+- The full 48-episode grid is available through the `episodes` command for diagnostics and future v0.2 expansion.
+- Benchmark-eligible records must run with `NANOCOOP_TIMEOUT_SECONDS=0`.
+- The default 180-second timeout is a developer guard only; timeout-marked runs are not official records.
+- Config sweeps, model upgrades, layout edits, or seed edits are experimental unless the run is explicitly marked non-eligible.
+- Qwen3.5 configs are forward-compatible targets and are not official v0.1 records until serving is verified.
+
+---
+
 ## Change and run
 
 Each track has **one Python file** containing the training algorithm and **one shell script** to run it.
@@ -74,12 +107,12 @@ Each track has **one Python file** containing the training algorithm and **one s
 1. Change the training algorithm in `src/nanocoop/baselines/offline_sft.py`
 2. Run:
    ```bash
-   ./scripts/run_offline_training.sh
+   ./scripts/run_offline_training_gpt41_nano.sh
    ```
 
-Budget: `20` minutes on `1x A100 40GB`  
-Student: `Qwen/Qwen3.5-4B`  
-Teacher: `Qwen/Qwen3.5-9B`
+Budget: `20` minutes on `1x A100 40GB`
+Student: `gpt-4.1-nano` starter policy path
+Future open-model target: `Qwen/Qwen3.5-4B`
 
 What the script handles:
 
@@ -94,7 +127,7 @@ Smoke override:
 
 ```bash
 NANOCOOP_OFFLINE_CONFIG=configs/offline_smoke.yaml \
-./scripts/run_offline_training.sh
+./scripts/run_offline_training_gpt41_nano.sh
 ```
 
 ### RLVR track
@@ -102,11 +135,12 @@ NANOCOOP_OFFLINE_CONFIG=configs/offline_smoke.yaml \
 1. Change the training algorithm in `src/nanocoop/baselines/rlvr.py`
 2. Run:
    ```bash
-   ./scripts/run_overcooked_rlvr_qwen35_4b_2xa100_20min.sh
+   ./scripts/run_overcooked_rlvr_gpt41_nano_2xa100_20min.sh
    ```
 
-Budget: `20` minutes on `2x A100 40GB`  
-Model: `Qwen/Qwen3.5-4B`
+Budget: `20` minutes on `2x A100 40GB`
+Policy model: `gpt-4.1-nano`
+Future open-model target: `Qwen/Qwen3.5-4B`
 
 What the script handles:
 
@@ -120,7 +154,7 @@ Smoke override:
 
 ```bash
 NANOCOOP_RLVR_CONFIG=configs/rlvr_smoke.yaml \
-./scripts/run_overcooked_rlvr_qwen35_4b_2xa100_20min.sh
+./scripts/run_overcooked_rlvr_gpt41_nano_2xa100_20min.sh
 ```
 
 ### Prompt-opt track
@@ -128,11 +162,12 @@ NANOCOOP_RLVR_CONFIG=configs/rlvr_smoke.yaml \
 1. Change the search / optimization algorithm in `src/nanocoop/baselines/prompt_opt.py`
 2. Run:
    ```bash
-   ./scripts/run_overcooked_prompt_opt_qwen35_4b_gpt54_budget.sh
+   ./scripts/run_overcooked_prompt_opt_gpt41_nano_gpt54_budget.sh
    ```
 
-Budget: `$1` optimizer spend (GPT-5.4 family)  
-Policy target: `Qwen/Qwen3.5-4B`
+Budget: `$1` optimizer spend (GPT-5.4 family)
+Policy target: `gpt-4.1-nano`
+Future open-model target: `Qwen/Qwen3.5-4B`
 
 What the script handles:
 
@@ -145,7 +180,7 @@ Smoke override:
 
 ```bash
 NANOCOOP_PROMPT_OPT_CONFIG=configs/prompt_opt_smoke.yaml \
-./scripts/run_overcooked_prompt_opt_qwen35_4b_gpt54_budget.sh
+./scripts/run_overcooked_prompt_opt_gpt41_nano_gpt54_budget.sh
 ```
 
 ---
@@ -166,6 +201,8 @@ Checked-in summaries also include:
 - `mean_completion_rate`
 - `cross_partner_std`
 - `num_eval_episodes`
+- per-layout and per-partner breakdowns
+- failed episode diagnostics
 
 The benchmark is intentionally **cross-play first**. High self-play and weak partner robustness is not the target.
 
@@ -219,10 +256,8 @@ Important docs:
 ## Quickstart
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev,overcookedv2]"
-make smoke
+uv sync --extra overcookedv2 --group dev
+uv run make smoke
 ```
 
 ---

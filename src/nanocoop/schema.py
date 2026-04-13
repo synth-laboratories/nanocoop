@@ -47,6 +47,9 @@ class Observation:
 
     def to_prompt(self) -> str:
         recent = "\n".join(f"- {event}" for event in self.recent_events) or "- none"
+        metadata = "\n".join(
+            f"- {key}: {value}" for key, value in sorted(self.metadata.items())
+        ) or "- none"
         return (
             f"layout: {self.layout}\n"
             f"step: {self.step_index}/{self.max_steps}\n"
@@ -62,6 +65,7 @@ class Observation:
             f"last_partner_action: {self.last_partner_action or 'none'}\n"
             f"last_joint_event: {self.last_joint_event or 'none'}\n"
             f"convention_hint: {self.convention_hint or 'none'}\n"
+            f"kitchen_state:\n{metadata}\n"
             f"recent_events:\n{recent}\n"
             f"available_actions: {', '.join(self.available_actions)}"
         )
@@ -135,6 +139,8 @@ class EvalEpisodeResult:
     total_reward: float
     success: bool
     mode: str
+    episode_id: int | None = None
+    step_count: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

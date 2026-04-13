@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Iterable
 
 BEHAVIOR_KEYWORDS = {
-    "share hidden info early": "share_hidden_info_early",
     "complement your partner": "complement_partner",
     "avoid duplicate work": "avoid_duplicate_work",
     "finish the soup": "finish_pipeline",
@@ -16,8 +15,6 @@ BEHAVIOR_KEYWORDS = {
 def extract_behavior_flags(prompt: str) -> list[str]:
     lowered = prompt.lower()
     flags = [flag for phrase, flag in BEHAVIOR_KEYWORDS.items() if phrase in lowered]
-    if "share hidden info" in lowered and "share_hidden_info_early" not in flags:
-        flags.append("share_hidden_info_early")
     return sorted(set(flags))
 
 

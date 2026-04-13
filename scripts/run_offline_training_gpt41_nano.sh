@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${NANOCOOP_OFFLINE_CONFIG:-$ROOT/configs/offline_overcooked_v2_qwen35_4b.yaml}"
+CONFIG="${NANOCOOP_OFFLINE_CONFIG:-$ROOT/configs/offline_overcooked_v2_gpt41_nano.yaml}"
 TIMEOUT_SECONDS="${NANOCOOP_TIMEOUT_SECONDS:-180}"
 OUTPUT_DIR="$(uv run --project "$ROOT" python "$ROOT/scripts/config_output_dir.py" "$CONFIG")"
 

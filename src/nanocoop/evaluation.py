@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import sys
 from typing import Any
 
 from nanocoop.envs import make_backend
+from nanocoop.episode_plan import select_cross_play_episodes
 from nanocoop.partner_zoo import make_partner
 from nanocoop.policy import HybridLookupPolicy, RemoteChatPolicy
 from nanocoop.schema import EvalEpisodeResult, PolicyPackage
@@ -27,42 +30,89 @@ def evaluate_package(
     config: dict[str, Any],
     *,
     include_self_play: bool = True,
+    episode_ids: list[int] | None = None,
+    workers: int | None = None,
+    progress: bool = False,
 ) -> list[EvalEpisodeResult]:
-    backend = make_backend(config)
     env_cfg = config.get("env", {})
     layouts = list(env_cfg.get("eval_layouts", []))
-    seeds = list(env_cfg.get("eval_seeds", []))
-    partner_names = list(config.get("partner_zoo", {}).get("eval", []))
+    eval_cfg = config.get("eval", {})
+    selected_episodes = select_cross_play_episodes(config, episode_ids=episode_ids)
+    worker_count = int(workers or eval_cfg.get("workers", 1))
 
-    policy = package_to_policy(package, config)
-    results: list[EvalEpisodeResult] = []
+    def run_cross_play(episode) -> EvalEpisodeResult:
+        backend = make_backend(config)
+        policy = package_to_policy(package, config, rng_seed=episode.episode_id)
+        partner = make_partner(episode.partner_name, seed=episode.seed)
+        trace = backend.rollout(
+            focal_policy=policy,
+            partner_policy=partner,
+            layout=episode.layout,
+            seed=episode.seed,
+            partner_name=episode.partner_name,
+            mode="cross_play",
+        )
+        return EvalEpisodeResult(
+            layout=episode.layout,
+            partner_name=episode.partner_name,
+            seed=episode.seed,
+            total_reward=trace.total_reward,
+            success=trace.success,
+            mode="cross_play",
+            episode_id=episode.episode_id,
+            step_count=len(trace.steps),
+        )
 
-    for partner_name in partner_names:
-        for seed in seeds:
-            for layout in layouts:
-                partner = make_partner(partner_name, seed=seed)
-                trace = backend.rollout(
-                    focal_policy=policy,
-                    partner_policy=partner,
-                    layout=layout,
-                    seed=seed,
-                    partner_name=partner_name,
-                    mode="cross_play",
-                )
-                results.append(
-                    EvalEpisodeResult(
-                        layout=layout,
-                        partner_name=partner_name,
-                        seed=seed,
-                        total_reward=trace.total_reward,
-                        success=trace.success,
-                        mode="cross_play",
+    if worker_count > 1 and len(selected_episodes) > 1:
+        results_by_id = {}
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = {
+                executor.submit(run_cross_play, episode): episode
+                for episode in selected_episodes
+            }
+            for future in as_completed(futures):
+                episode = futures[future]
+                result = future.result()
+                results_by_id[episode.episode_id] = result
+                if progress:
+                    done = len(results_by_id)
+                    print(
+                        (
+                            f"episode {episode.episode_id} "
+                            f"({done}/{len(selected_episodes)}): "
+                            f"layout={episode.layout} partner={episode.partner_name} "
+                            f"seed={episode.seed} reward={result.total_reward} "
+                            f"success={result.success}"
+                        ),
+                        file=sys.stderr,
+                        flush=True,
                     )
+        results = [results_by_id[episode.episode_id] for episode in selected_episodes]
+    else:
+        results = []
+        for episode in selected_episodes:
+            result = run_cross_play(episode)
+            results.append(result)
+            if progress:
+                print(
+                    (
+                        f"episode {episode.episode_id} "
+                        f"({len(results)}/{len(selected_episodes)}): "
+                        f"layout={episode.layout} partner={episode.partner_name} "
+                        f"seed={episode.seed} reward={result.total_reward} "
+                        f"success={result.success}"
+                    ),
+                    file=sys.stderr,
+                    flush=True,
                 )
 
     if include_self_play:
+        backend = make_backend(config)
         self_policy = package_to_policy(package, config, rng_seed=999)
-        for seed in seeds:
+        self_seeds = list(env_cfg.get("self_play_seeds", [])) or [
+            1000 + index for index, _ in enumerate(layouts, start=1)
+        ]
+        for seed in self_seeds:
             for layout in layouts:
                 trace = backend.rollout(
                     focal_policy=self_policy,
@@ -80,6 +130,8 @@ def evaluate_package(
                         total_reward=trace.total_reward,
                         success=trace.success,
                         mode="self_play",
+                        episode_id=None,
+                        step_count=len(trace.steps),
                     )
                 )
 

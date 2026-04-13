@@ -5,7 +5,7 @@ from typing import Any
 from nanocoop.evaluation import evaluate_package
 from nanocoop.policy import make_seed_package
 from nanocoop.record_bundle import write_record_bundle
-from nanocoop.score import render_summary_markdown, summarize_eval
+from nanocoop.score import render_summary_markdown, run_contract_metadata, summarize_eval
 
 
 def run(config: dict[str, Any]) -> dict[str, Any]:
@@ -51,6 +51,7 @@ def run(config: dict[str, Any]) -> dict[str, Any]:
 
     final_results = evaluate_package(best_package, config, include_self_play=True)
     metrics = summarize_eval(final_results)
+    metrics.update(run_contract_metadata(config))
     metrics.update(
         {
             "track": config.get("track"),

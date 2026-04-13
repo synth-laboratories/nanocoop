@@ -22,9 +22,18 @@ Recommended fields in `metrics.json`:
 - `mean_completion_rate`
 - `cross_partner_std`
 - `num_eval_episodes`
+- `layout_breakdown`
+- `partner_breakdown`
+- `failed_episodes`
+- `official_episode_ids`
+- `timeout_seconds`
+- `timed_out`
+- `official_record`
 - `benchmark_eligible`
 - `backend`
 - `track`
 - `run_name`
+
+Official v0.1 records must run with `NANOCOOP_TIMEOUT_SECONDS=0`. Developer-timeout runs may leave `timeout_status.json`; those are not benchmark-eligible.
 
 Do not commit placeholder records. Record bundles should come from verified OvercookedV2 runs.

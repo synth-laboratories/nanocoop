@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 COOP_ACTIONS = (
-    "SHARE_RECIPE",
-    "SHARE_POT",
     "FETCH_INGREDIENT",
     "PREP_POT",
     "FETCH_DISH",

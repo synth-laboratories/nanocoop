@@ -1,18 +1,21 @@
 track: rlvr_20min_2xa100_40gb
-run_name: overcookedv2_reference_baseline
+run_name: overcookedv2_gpt41_nano_reference_baseline
 backend: overcookedv2
 benchmark_eligible: false
-output_dir: records/rlvr_20min_2xa100_40gb/2026-04-12_overcookedv2_reference_baseline
+output_dir: records/rlvr_20min_2xa100_40gb/2026-04-12_overcookedv2_gpt41_nano_reference_baseline
 
 model:
-  name: Qwen/Qwen3.5-4B
+  name: gpt-4.1-nano
+  api_base: https://api.openai.com/v1
   temperature: 0.2
-  max_tokens: 128
+  max_tokens: 256
+  plan_horizon: 4
 
 policy:
   seed_prompt: |
     You are a cooperative cooking agent.
     Complement your partner.
+    Prefer complementary roles.
 
 env:
   train_layouts:
@@ -26,6 +29,7 @@ env:
   train_seeds: [41, 43, 47, 53, 59, 61]
   eval_seeds: [131, 137, 139, 149, 151, 157]
   max_steps: 80
+  policy_decision_interval: 8
   stochasticity: 0.15
 
 partner_zoo:

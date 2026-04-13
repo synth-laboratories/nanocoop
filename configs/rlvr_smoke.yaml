@@ -10,22 +10,27 @@ model:
 policy:
   seed_prompt: |
     You are a cooperative cooking agent.
-    Share hidden info early.
+    Complement your partner.
 
 env:
-  train_layouts: [grounded_coord_simple, demo_cook_simple]
+  train_layouts: [grounded_coord_simple]
   eval_layouts: [test_time_simple]
-  train_seeds: [1, 2, 3]
-  eval_seeds: [4, 5]
-  max_steps: 8
+  train_seeds: [1]
+  eval_seeds: [4]
+  max_steps: 20
   stochasticity: 0.08
 
 partner_zoo:
-  train: [courier, potter, handoff]
-  eval: [courier, potter, handoff]
+  train: [courier]
+  eval: [courier]
+
+eval:
+  episodes_per_combo: 1
+  default_episode_count: 1
+  episode_ids: [1]
 
 rlvr:
-  iterations: 3
-  episodes_per_iteration: 8
+  iterations: 1
+  episodes_per_iteration: 2
   exploration_rate: 0.15
   min_improvement_to_keep: 0.0

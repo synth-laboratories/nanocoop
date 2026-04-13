@@ -1,0 +1,19 @@
+{
+  "action_lookup": {},
+  "adapter_path": null,
+  "backend": "overcookedv2",
+  "behavior_flags": [
+    "avoid_duplicate_work",
+    "complement_partner",
+    "finish_pipeline",
+    "prefer_complementary_roles"
+  ],
+  "fewshot_examples": [],
+  "metadata": {
+    "algorithm": "nochange_starter_agent",
+    "track": "starter_agent"
+  },
+  "model": "gpt-4.1-nano",
+  "name": "gpt41_nano_nochange_baseline",
+  "system_prompt": "You are a cooperative cooking agent.\nComplement your partner.\nPrefer complementary roles.\nAvoid duplicate work.\nFinish the soup."
+}

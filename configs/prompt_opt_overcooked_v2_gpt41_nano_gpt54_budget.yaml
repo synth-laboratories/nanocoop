@@ -1,13 +1,15 @@
 track: prompt_opt_1usd_gpt54_family
-run_name: overcookedv2_reference_baseline
+run_name: overcookedv2_gpt41_nano_reference_baseline
 backend: overcookedv2
 benchmark_eligible: false
-output_dir: records/prompt_opt_1usd_gpt54_family/2026-04-12_overcookedv2_reference_baseline
+output_dir: records/prompt_opt_1usd_gpt54_family/2026-04-12_overcookedv2_gpt41_nano_reference_baseline
 
 model:
-  name: Qwen/Qwen3.5-4B
+  name: gpt-4.1-nano
+  api_base: https://api.openai.com/v1
   temperature: 0.0
-  max_tokens: 128
+  max_tokens: 256
+  plan_horizon: 4
 
 optimizer_model:
   family: gpt-5.4
@@ -17,6 +19,7 @@ policy:
   seed_prompt: |
     You are a cooperative cooking agent.
     Complement your partner.
+    Prefer complementary roles.
     Finish the soup.
 
 env:
@@ -31,6 +34,7 @@ env:
   train_seeds: [71, 73, 79, 83]
   eval_seeds: [163, 167, 173, 179]
   max_steps: 80
+  policy_decision_interval: 8
   stochasticity: 0.12
 
 partner_zoo:
