@@ -8,7 +8,7 @@ from nanocoop.envs import make_backend
 from nanocoop.episode_plan import select_cross_play_episodes
 from nanocoop.partner_zoo import make_partner
 from nanocoop.policy import HybridLookupPolicy, RemoteChatPolicy
-from nanocoop.schema import EvalEpisodeResult, PolicyPackage
+from nanocoop.schema import EpisodeTrace, EvalEpisodeResult, PolicyPackage
 
 
 def package_to_policy(
@@ -33,6 +33,7 @@ def evaluate_package(
     episode_ids: list[int] | None = None,
     workers: int | None = None,
     progress: bool = False,
+    rollout_trace_sink: dict[int, EpisodeTrace] | None = None,
 ) -> list[EvalEpisodeResult]:
     env_cfg = config.get("env", {})
     layouts = list(env_cfg.get("eval_layouts", []))
@@ -51,7 +52,10 @@ def evaluate_package(
             seed=episode.seed,
             partner_name=episode.partner_name,
             mode="cross_play",
+            capture_states=rollout_trace_sink is not None,
         )
+        if rollout_trace_sink is not None:
+            rollout_trace_sink[episode.episode_id] = trace
         return EvalEpisodeResult(
             layout=episode.layout,
             partner_name=episode.partner_name,
@@ -61,6 +65,7 @@ def evaluate_package(
             mode="cross_play",
             episode_id=episode.episode_id,
             step_count=len(trace.steps),
+            llm_call_count=int(trace.metadata.get("focal_llm_call_count", 0) or 0),
         )
 
     if worker_count > 1 and len(selected_episodes) > 1:

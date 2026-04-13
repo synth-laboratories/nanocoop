@@ -141,6 +141,7 @@ class EvalEpisodeResult:
     mode: str
     episode_id: int | None = None
     step_count: int | None = None
+    llm_call_count: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

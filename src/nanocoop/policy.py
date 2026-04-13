@@ -159,6 +159,7 @@ class RemoteChatPolicy:
         self._planned_actions: list[str] = []
         self._last_plan_step = -1
         self._plan_state_key: tuple[Any, ...] | None = None
+        self.llm_call_count = 0
 
     def _act_from_plan(self, observation: Observation) -> str:
         if observation.step_index <= self._last_plan_step:
@@ -214,6 +215,7 @@ class RemoteChatPolicy:
             json=payload,
             timeout=self.timeout_seconds,
         )
+        self.llm_call_count += 1
         response.raise_for_status()
         body = response.json()
         content = body["choices"][0]["message"]["content"]
@@ -258,6 +260,7 @@ class RemoteChatPolicy:
             json=payload,
             timeout=self.timeout_seconds,
         )
+        self.llm_call_count += 1
         response.raise_for_status()
         body = response.json()
         content = body["choices"][0]["message"]["content"]

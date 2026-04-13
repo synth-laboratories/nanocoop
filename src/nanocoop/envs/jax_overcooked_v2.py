@@ -183,6 +183,7 @@ class JaxOvercookedV2Backend:
                 "stay",
                 "interact",
             ],
+            "focal_llm_call_count": int(getattr(focal_policy, "llm_call_count", 0) or 0),
         }
         if state_sequence is not None:
             metadata["state_sequence"] = state_sequence
