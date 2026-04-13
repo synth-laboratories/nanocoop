@@ -280,6 +280,8 @@ class RemoteChatPolicy:
     ) -> str | None:
         carrying = str(observation.metadata.get("inventory", "empty"))
         can_reach_ingredient = bool(observation.metadata.get("can_reach_ingredient", True))
+        can_reach_plate = bool(observation.metadata.get("can_reach_plate", True))
+        partner_name = str(observation.metadata.get("partner_name", ""))
         pot_full = bool(observation.metadata.get("pot_full", False))
 
         if observation.plated and not observation.delivered:
@@ -290,6 +292,34 @@ class RemoteChatPolicy:
             return "PLATE_SOUP"
         if "cooked_soup" in carrying and "plate" in carrying:
             return "SERVE_SOUP"
+
+        partner_action = observation.last_partner_action
+        if partner_action in {"FETCH_INGREDIENT", "PREP_POT"}:
+            if not observation.dish_ready and can_reach_plate:
+                return "FETCH_DISH"
+            if observation.pot_ready and observation.dish_ready and not observation.plated:
+                return "PLATE_SOUP"
+        if partner_action in {"FETCH_DISH", "PLATE_SOUP", "SERVE_SOUP"}:
+            if not pot_full and can_reach_ingredient:
+                return "FETCH_INGREDIENT"
+            if not observation.pot_ready:
+                return "PREP_POT"
+
+        if partner_name == "potter" and not observation.dish_ready and can_reach_plate:
+            return "FETCH_DISH"
+        if partner_name == "courier" and not pot_full and can_reach_ingredient:
+            return "FETCH_INGREDIENT"
+        if (
+            partner_name == "handoff"
+            and planned_action is not None
+            and planned_action == partner_action
+        ):
+            if planned_action == "FETCH_INGREDIENT" and not observation.dish_ready and can_reach_plate:
+                return "FETCH_DISH"
+            if planned_action == "FETCH_DISH" and not pot_full and can_reach_ingredient:
+                return "FETCH_INGREDIENT"
+            if planned_action == "PREP_POT" and not observation.dish_ready and can_reach_plate:
+                return "FETCH_DISH"
 
         if planned_action == "FETCH_INGREDIENT" and not can_reach_ingredient:
             if not observation.pot_ready:
