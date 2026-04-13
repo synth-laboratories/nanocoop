@@ -1,0 +1,5 @@
+2026-04-13
+- `submission/agent.py` now includes `PUBLICATION_SMOKE_NOTE = "Publication smoke only; keep baseline settings unchanged."` and appends it to the `seed_prompt`.
+- Verified `python submission/agent.py eval` on a single public-train episode (`episode_ids=[2]`) after `uv sync --extra overcookedv2`; result: `cross_play_mean_reward=20.0`, `primary_score=20.0`, `num_eval_episodes=1`, `failed_episodes=[]`.
+- The prompt change is behavior-neutral on the sampled slice; it is a publication marker, not an observed benchmark improvement.
+- Pre-existing unrelated modifications were present in `scripts/run_offline_training_gpt41_nano.sh` and `scripts/run_overcooked_rlvr_gpt41_nano_2xa100_20min.sh`; they were left untouched.
