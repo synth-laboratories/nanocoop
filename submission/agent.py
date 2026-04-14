@@ -42,8 +42,8 @@ def _public_train_episode_ids(eval_episode_ids: list[int]) -> list[int]:
 def define() -> dict[str, Any]:
     eval_episode_ids = _official_eval_episode_ids()
     return {
-        "name": "gpt41_nano_submission",
-        "description": "Single-file NanoCoop submission surface for starter-agent style coordination changes.",
+        "name": "gpt41_nano_publication_smoke",
+        "description": "Single-file NanoCoop publication-smoke surface for starter-agent style coordination changes.",
         "train_episode_ids": _public_train_episode_ids(eval_episode_ids),
         "model": {
             "name": "gpt-4.1-nano",
