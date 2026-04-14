@@ -13,6 +13,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _OFFICIAL_EVAL_EPISODE_IDS = [1, 3, 4, 5, 6, 8, 10, 12, 13, 14, 19, 21, 24, 26, 30, 33, 36, 39, 44, 47]
 _PUBLIC_TRAIN_EPISODE_IDS = [episode_id for episode_id in range(1, 49) if episode_id not in set(_OFFICIAL_EVAL_EPISODE_IDS)]
+PUBLICATION_SMOKE_NOTE = (
+    "Publication smoke note: keep the cheap gpt-4.1-nano baseline intact, "
+    "prefer complementary roles, and avoid duplicate work."
+)
 
 
 def _parse_episode_ids_override(raw: str) -> list[int]:
@@ -58,7 +62,8 @@ def define() -> dict[str, Any]:
                 "Complement your partner.\n"
                 "Prefer complementary roles.\n"
                 "Avoid duplicate work.\n"
-                "Finish the soup."
+                "Finish the soup.\n"
+                f"{PUBLICATION_SMOKE_NOTE}"
             ),
             "coordination_rules": [
                 "Prefer role splits over mirrored movement.",
