@@ -13,6 +13,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _OFFICIAL_EVAL_EPISODE_IDS = [1, 3, 4, 5, 6, 8, 10, 12, 13, 14, 19, 21, 24, 26, 30, 33, 36, 39, 44, 47]
 _PUBLIC_TRAIN_EPISODE_IDS = [episode_id for episode_id in range(1, 49) if episode_id not in set(_OFFICIAL_EVAL_EPISODE_IDS)]
+PUBLICATION_SMOKE_NOTE = "Publication smoke note: keep the baseline cheap, cooperative, and reviewable."
 
 
 def _parse_episode_ids_override(raw: str) -> list[int]:
@@ -43,7 +44,7 @@ def define() -> dict[str, Any]:
     eval_episode_ids = _official_eval_episode_ids()
     return {
         "name": "gpt41_nano_submission",
-        "description": "Single-file NanoCoop submission surface for starter-agent style coordination changes.",
+        "description": f"Single-file NanoCoop submission surface for starter-agent style coordination changes. {PUBLICATION_SMOKE_NOTE}",
         "train_episode_ids": _public_train_episode_ids(eval_episode_ids),
         "model": {
             "name": "gpt-4.1-nano",
@@ -58,7 +59,8 @@ def define() -> dict[str, Any]:
                 "Complement your partner.\n"
                 "Prefer complementary roles.\n"
                 "Avoid duplicate work.\n"
-                "Finish the soup."
+                "Finish the soup.\n"
+                f"{PUBLICATION_SMOKE_NOTE}"
             ),
             "coordination_rules": [
                 "Prefer role splits over mirrored movement.",
@@ -141,6 +143,8 @@ def eval(checkpoint_dir: Path, data_dir: Path, out_dir: Path) -> dict[str, Any]:
     runner_config = _materialize_runner_config(config, episode_ids=episode_ids, output_dir=record_dir)
     with tempfile.TemporaryDirectory(prefix="nanocoop-submission-") as temp_dir:
         config_path = Path(temp_dir) / "agent_eval.yaml"
+        stdout_path = Path(temp_dir) / "stdout.log"
+        stderr_path = Path(temp_dir) / "stderr.log"
         config_path.write_text(yaml.safe_dump(runner_config, sort_keys=False), encoding="utf-8")
         command = [
             "uv",
@@ -155,16 +159,22 @@ def eval(checkpoint_dir: Path, data_dir: Path, out_dir: Path) -> dict[str, Any]:
             "--workers",
             str(int(runner_config.get("eval", {}).get("workers", 4))),
         ]
-        process = subprocess.run(
-            command,
-            cwd=str(REPO_ROOT),
-            text=True,
-            capture_output=True,
-            check=False,
-        )
+        with stdout_path.open("w", encoding="utf-8") as stdout_file, stderr_path.open(
+            "w", encoding="utf-8"
+        ) as stderr_file:
+            process = subprocess.run(
+                command,
+                cwd=str(REPO_ROOT),
+                text=True,
+                stdout=stdout_file,
+                stderr=stderr_file,
+                check=False,
+            )
+        stdout_text = stdout_path.read_text(encoding="utf-8")
+        stderr_text = stderr_path.read_text(encoding="utf-8")
     if process.returncode != 0:
-        raise RuntimeError(process.stderr.strip() or process.stdout.strip() or "nanocoop starter-agent eval failed")
-    metrics = json.loads(process.stdout)
+        raise RuntimeError(stderr_text.strip() or stdout_text.strip() or "nanocoop starter-agent eval failed")
+    metrics = json.loads(stdout_text)
     result = {
         "primary_score": metrics.get("primary_score"),
         "mean_reward": metrics.get("cross_play_mean_reward"),
@@ -173,8 +183,8 @@ def eval(checkpoint_dir: Path, data_dir: Path, out_dir: Path) -> dict[str, Any]:
         "checkpoint": checkpoint,
     }
     (out_dir / "result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (out_dir / "stdout.log").write_text(process.stdout, encoding="utf-8")
-    (out_dir / "stderr.log").write_text(process.stderr, encoding="utf-8")
+    (out_dir / "stdout.log").write_text(stdout_text, encoding="utf-8")
+    (out_dir / "stderr.log").write_text(stderr_text, encoding="utf-8")
     return result
 
 
