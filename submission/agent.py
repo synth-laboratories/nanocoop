@@ -13,7 +13,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _OFFICIAL_EVAL_EPISODE_IDS = [1, 3, 4, 5, 6, 8, 10, 12, 13, 14, 19, 21, 24, 26, 30, 33, 36, 39, 44, 47]
 _PUBLIC_TRAIN_EPISODE_IDS = [episode_id for episode_id in range(1, 49) if episode_id not in set(_OFFICIAL_EVAL_EPISODE_IDS)]
-PUBLICATION_SMOKE_NOTE = "Publication smoke: keep plans short and coordinate before moving."
+PUBLICATION_SMOKE_NOTE = "Publication smoke: keep plans short, coordinate before moving, and avoid extra replans."
 
 
 def _parse_episode_ids_override(raw: str) -> list[int]:
