@@ -13,6 +13,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _OFFICIAL_EVAL_EPISODE_IDS = [1, 3, 4, 5, 6, 8, 10, 12, 13, 14, 19, 21, 24, 26, 30, 33, 36, 39, 44, 47]
 _PUBLIC_TRAIN_EPISODE_IDS = [episode_id for episode_id in range(1, 49) if episode_id not in set(_OFFICIAL_EVAL_EPISODE_IDS)]
+PUBLICATION_SMOKE_NOTE = "Publication smoke note: keep the plan short, coordinate explicitly, and call the handoff before reassigning a contested task."
 
 
 def _parse_episode_ids_override(raw: str) -> list[int]:
@@ -47,13 +48,14 @@ def define() -> dict[str, Any]:
         "train_episode_ids": _public_train_episode_ids(eval_episode_ids),
         "model": {
             "name": "gpt-4.1-nano",
-            "api_base": "https://api.openai.com/v1",
+            "api_base": os.getenv("OPENAI_API_BASE", "http://127.0.0.1:8000/v1"),
             "temperature": 0.0,
             "max_tokens": 256,
             "plan_horizon": 4,
         },
         "policy": {
             "seed_prompt": (
+                f"{PUBLICATION_SMOKE_NOTE}\n"
                 "You are a cooperative cooking agent.\n"
                 "Complement your partner.\n"
                 "Prefer complementary roles.\n"
