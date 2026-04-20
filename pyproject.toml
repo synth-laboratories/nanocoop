@@ -21,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 overcookedv2 = [
   "imageio[pillow]>=2.34",
+  "imageio-ffmpeg>=0.6.0",
   "jaxmarl>=0.1.0",
 ]
 

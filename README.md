@@ -8,6 +8,24 @@ NanoCoop mirrors the spirit of NanoHorizon, but swaps the long-horizon single-ag
 
 ---
 
+## Leaderboard Submission Surface
+
+For leaderboard and SMR submissions, edit only:
+
+`submission/agent.py`
+
+That file owns the full submission contract:
+
+- `define() -> dict`
+- `train(data_dir, out_dir) -> None`
+- `eval(checkpoint_dir, data_dir, out_dir) -> dict`
+
+The same `eval()` entrypoint is used for public train episode IDs and held-out
+leaderboard episode IDs. The scorer only changes `data_dir`.
+
+`eval()` should emit rollout record artifacts, including per-episode GIFs when
+available, so the leaderboard candidate page can attach media for each rollout.
+
 ## What this benchmark is about
 
 NanoCoop is about **changing the training algorithm**, not tweaking config knobs.
@@ -79,7 +97,12 @@ Before changing any training code, score the no-change focal agent:
 
 Requires `OPENAI_API_KEY` in the environment.
 
-This evaluates the seed coordination prompt in `gpt-4.1-nano` against the public partner zoo on held-out OvercookedV2 layouts and seeds. The resulting `cross_play_mean_reward` is the baseline-to-beat for method development.
+This evaluates the seed coordination prompt in `gpt-4.1-nano` against the
+public partner zoo on held-out OvercookedV2 layouts and seeds. The resulting
+`cross_play_mean_reward` is the baseline-to-beat for method development.
+
+The checked-in starter YAML remains a reference config for local tooling, but
+`submission/agent.py` is now the official submission surface.
 
 The starter agent is intentionally cheap and closed-model. NanoCoop should reward better coordination methods, data selection, rollout strategy, prompt search, and partner adaptation, not model-scale changes. The baseline asks the model for short cooperative macro-action plans, then executes those plans for several environment ticks before replanning. The run scripts stop after 180 seconds by default for fast iteration; set `NANOCOOP_TIMEOUT_SECONDS=0` for full benchmark records. The initial action set contains cooking and movement actions only; explicit communication actions are excluded until the environment adapter supports them as real state-changing actions.
 
@@ -231,7 +254,7 @@ This means you can start cheap and iterate fast, then swap in the real model ser
 ## Repo layout
 
 ```text
-nano-coop/
+nanocoop/
 ├── configs/
 ├── docs/
 ├── records/
