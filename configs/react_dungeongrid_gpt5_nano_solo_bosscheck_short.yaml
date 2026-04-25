@@ -1,0 +1,44 @@
+track: starter_agent
+run_name: gpt5_nano_dungeongrid_solo_bosscheck_short
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: records/starter_agent/2026-04-24_gpt5_nano_dungeongrid_solo_bosscheck_short
+
+model:
+  name: gpt-5-nano
+  api_base: https://api.openai.com/v1
+  max_tokens: 512
+  token_limit_field: max_completion_tokens
+  omit_temperature: true
+  timeout_seconds: 60
+  max_tool_rounds: 3
+
+policy:
+  kind: dungeongrid_react
+  seed_prompt: |
+    You control one DungeonGrid hero in DungeonGrid.
+    Zargon/Warden is always controlled by the environment.
+    Submit a queued OpenEnv ReAct-style list of structured JSON action objects
+    for only the active hero. Legal actions are not listed; use the visible
+    board state, rules context, and environment feedback.
+    Prefer objective progress, survival, exploration, and escape. Use several actions
+    when AP permits. Do not start a plan with end_turn if movement, inspection,
+    interaction, combat, door, spell, or trap actions can make progress.
+
+env:
+  eval_layouts: [lantern_crypt]
+  num_heroes: 1
+  player_count_mode: solo
+  max_steps: 12
+  observation_mode: mixed
+
+partner_zoo:
+  eval: [scripted_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 1
+  default_episode_count: 1
+  default_episode_sample_seed: 20260424
+  workers: 1
+  episode_ids: [1]

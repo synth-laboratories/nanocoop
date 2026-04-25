@@ -70,11 +70,12 @@ def _cmd_starter_agent(args: argparse.Namespace) -> int:
     package.metadata.update(
         {
             "track": config.get("track", "starter_agent"),
-            "algorithm": "nochange_starter_agent",
+            "algorithm": str(config.get("policy", {}).get("kind") or "nochange_starter_agent"),
         }
     )
     if output_dir:
-        notes = ["No-change starter policy package."]
+        policy_kind = str(config.get("policy", {}).get("kind") or "nochange_starter_agent")
+        notes = [f"Starter policy package: `{policy_kind}`."]
         if metrics.get("failed_episodes"):
             notes.append(
                 "Known v0.1 limitation: unresolved wide-layout episodes are retained "

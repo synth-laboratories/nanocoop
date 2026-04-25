@@ -1,0 +1,2450 @@
+# DungeonGrid Better Mechanics Catalog
+
+Status: working design note
+Created: 2026-04-24
+
+Multi-Agent Benchmark Intent
+============================
+
+DungeonGrid is supposed to be a multi-agent cooperation benchmark first. It must
+allow one, two, three, or four submitted player agents because solo and partial
+party runs are useful for debugging, ablations, cost control, and single-policy
+baselines. But the environment should be designed so the richest and most
+representative behavior requires collaboration among distinct heroes.
+
+Single-agent play is acceptable; it is not the design center.
+
+The design center is:
+
+- decentralized hero turns with partial observations;
+- text-first board-state observations for game-playing agents;
+- one tool call that can submit multiple structured JSON actions per decision;
+- heterogeneous roles with asymmetric strengths;
+- shared objective-first reward;
+- local information that becomes more useful when communicated;
+- physical and temporal constraints that make division of labor valuable;
+- cross-play robustness with unknown partner policies;
+- fixed Warden/DM partner policies that pressure the party without becoming a
+  participant-controlled player.
+
+This follows the same benchmark philosophy as cooperative MARL tasks such as
+Overcooked-style coordination: good layouts do not merely place two agents in
+the same world; they create handoffs, role specialization, path conflicts,
+asymmetric access, partial information, and timing pressure. In DungeonGrid, the
+analogues are locked rooms, trap corridors, alarm actors, treasure-vs-objective
+tradeoffs, escort routes, chokepoints, scouting, and spell/gear dependencies.
+
+classic tabletop dungeon-crawler play is useful as a genre reference because its party roles
+naturally create collaboration pressure: durable front-liners, fragile casters,
+scouts, trap/lock specialists, objective carriers, and a dungeon controller.
+DungeonGrid should keep that interpretable cooperative shape while using original
+rules, names, maps, cards, monsters, and text.
+
+Core agent interface requirement:
+
+- Agents receive a compact text rendering of the current board state plus the
+  high-level game rules in the system prompt.
+- Agents submit a list of structured JSON action objects in one tool call.
+- Unlike Craftax-style action batches, DungeonGrid actions must not be bare
+  strings. They must be JSON objects, because targets, payloads, rooms, objects,
+  messages, spells, and equipment matter.
+- The environment executes the submitted list until AP/turn end or a reveal
+  boundary returns control for replanning.
+- The observation should not dump the full legal action list. Agents can use a
+  rules-details tool for action schemas and mechanics. The environment validates
+  each proposed action and gives concrete invalid-action feedback when a move is
+  illegal.
+
+Purpose
+=======
+
+DungeonGrid should be an 80/20, non-infringing analogue of the classic
+DM-led dungeon board game shape: a small party of archetypal heroes enters a
+fixed quest map, searches rooms, opens doors, fights monsters, manages scarce
+survival resources, recovers an objective, and escapes while an always-AI
+dungeon controller pressures them.
+
+The goal is interpretability, not cloning. Human developers should be able to
+read AI traces and quickly understand whether the agents are showing familiar
+skills:
+
+- scouting and mapping a dungeon;
+- coordinating multiple heroes with different strengths;
+- choosing when to fight, search, heal, retreat, or push the objective;
+- reasoning about doors, traps, treasure, and room-by-room risk;
+- handling an adversarial-but-fixed DM policy;
+- recovering after bad plans, illegal queued actions, and partial information.
+
+We should not copy protected quest text, maps, named characters, branded
+mechanics, card text, art, or distinctive trade dress. It is fine to preserve
+generic tabletop dungeon-crawl concepts: four fantasy archetypes, a dungeon
+master/warden side, rooms and corridors, doors, traps, treasure, monsters,
+simple spells, and objective-and-escape quests.
+
+External reference
+==================
+
+The user supplied the classic tabletop dungeon crawler Core Quest Book PDF as a high-level reference
+for the genre shape. Treat it as inspiration for evaluation readability, not as
+source content. In particular:
+
+- use original DungeonGrid quest names, maps, room descriptions, monsters, items,
+  and scripts;
+- keep Warden/DM/Zargon as our functional role name, but avoid copying branded
+  prose or quest assets;
+- prefer mechanics that are generic, compact, and legible in JSON traces;
+- document any intentional analogues in our own vocabulary.
+
+Current DungeonGrid Mechanics
+===========================
+
+Architecture
+------------
+
+Current NanoCoop DungeonGrid is built around:
+
+- GridEngine: loads JSON quests, parses ASCII maps, computes visibility, known
+  tiles, paths, rendering, and initial GameState.
+- RulesEngine: produces legal actions, resolves actions, combat, AP costs,
+  scripts, reward, turn advancement, Warden activation, and end conditions.
+- AgentEngine: simple policies, scripted Warden action choice, rollout metrics.
+- NanoCoop adapter: exposes DungeonGrid as a first-class track with solo, duo,
+  trio, and squad slices; accepts long action plans; records executed, skipped,
+  and unused queued actions.
+
+Turn structure
+--------------
+
+- Only submitted heroes exist. Solo is one hero, not one player controlling all
+  heroes.
+- Each living hero gets 3 AP on their turn.
+- The active hero submits a list of structured JSON action objects.
+- The environment executes the list in order until AP is gone or turn ends.
+- If a queued action becomes illegal, it is skipped and later queued actions
+  can still execute.
+- Extra actions after the turn ends are recorded as unused.
+- After all heroes act, the Warden phase runs through fixed AI policy.
+
+Current hero roles
+------------------
+
+- barbarian: high HP and melee attack; durable anchor.
+- wizard: fragile, high focus, spark_lance spell.
+- elf: faster, moderate focus, support/search identity, mend_wounds spell.
+- dwarf: durable, high guard, trapcraft identity.
+
+Current monsters
+----------------
+
+- skitterling: weak, fast swarm monster.
+- bone_guard: slower, sturdier room holder.
+- gloom_cultist: light ranged/alarm-flavored monster.
+- crypt_brute: durable objective guardian.
+
+Current action set
+------------------
+
+- move: one tile in a cardinal direction.
+- open_door: open adjacent non-secret or discovered door.
+- attack_melee: adjacent monster attack.
+- attack_ranged: line-of-sight ranged attack.
+- cast: spark_lance or mend_wounds depending on role/spell payload.
+- inspect_tile: reveal hidden trap or secret door on a specific tile.
+- inspect_room: reveal hidden features in visible area.
+- disarm: attempt to disarm a revealed adjacent trap.
+- interact: chest, objective pickup, escape.
+- use_item: action cost exists, but item resolution is not yet implemented in
+  current NanoCoop DungeonGrid.
+- message: send durable party/ally coordination text.
+- guard: gain guarded status until the next incoming attack or round reset.
+- end_turn: end active hero turn.
+- warden_auto / activate_monster: Warden-side actions.
+
+Current map and information model
+---------------------------------
+
+- ASCII map glyphs define walls, floors, entries, doors, secret doors, traps,
+  chests, objectives, and monster starts.
+- Visibility is radius-based and blocked by walls/closed doors.
+- Warden is omniscient; heroes see partial state.
+- Hidden traps and secret doors exist but are only surfaced when found.
+- Known tiles accumulate as party exploration memory.
+- Observations expose visible map, symbolic state, active role, AP, legal
+  action objects, recent events, and recent messages.
+
+Current reward and metrics
+--------------------------
+
+Primary success remains objective-first: recover/escort the objective and
+escape.
+
+Reward currently includes:
+
+- small per-action step cost;
+- positive reward for opening doors, damaging/defeating monsters, healing,
+  finding hidden features, opening useful chests, taking the objective, and
+  escaping;
+- penalties for damage, invalid actions, ambushes, and dungeon victory;
+- incremental scout reward for newly known floor tiles and newly discovered
+  door-separated room regions;
+- final scout reward for episode-end room coverage so partial crawls are not
+  all scored as pure failure.
+
+Metrics currently include:
+
+- success and winner;
+- survival and heroes alive;
+- rounds;
+- damage;
+- treasure;
+- exploration coverage;
+- explored tiles and floor tiles;
+- rooms explored and room count;
+- scout reward and final scout reward;
+- invalid/skipped actions;
+- monsters defeated;
+- per-hero action usage through the NanoCoop adapter.
+
+Current five dungeons
+---------------------
+
+- lantern_crypt: introductory retrieve-and-escape with doors, traps, chests,
+  objective pickup alert, and reinforcements.
+- bells_under_blackwater: alarm/cultist-themed retrieve-and-escape.
+- ashen_pantry: secret-path/search-flavored retrieve-and-escape.
+- cinder_exit: fragile relic escort to a different exit.
+- low_shrine_locks: token/key-style shrine lock objective.
+
+Downloaded Attempt Inventory
+============================
+
+Best current engine base: early DungeonGrid prototype 2
+---------------------------------------------
+
+This is the version we consolidated into NanoCoop. It has the cleanest
+GridEngine / RulesEngine / AgentEngine split and five quest files. It is the
+right foundation for continued implementation.
+
+What it lacks is richness around authored rooms, item use, locked/keyed doors,
+object contents, and script specificity.
+
+Richer content source: early DungeonGrid prototype
+---------------------------------------
+
+This older version has a less clean architecture but more authored quest
+texture:
+
+- quest briefing, success, and failure text;
+- explicit rooms with IDs, names, and descriptions;
+- richer scoring metadata, including optional treasure and alarm prevention;
+- chest contents such as gold, healing draughts, and ambushes;
+- trap kind, damage, and DC values;
+- secret doors and hidden features;
+- use_item behavior for healing draughts;
+- bell alarm pressure logic;
+- cultist ranged behavior.
+
+Richer schema source: early DungeonGrid schema prototype
+-----------------------------------------------
+
+This version has the best schema direction:
+
+- entities.heroes, entities.monsters, entities.objects, entities.traps,
+  entities.doors;
+- object contents as lists rather than only one string;
+- locked and secret door fields;
+- trap armed/revealed/damage/DC fields;
+- objective types including stop-cultist retrieve-and-escape;
+- bell_alarm script with actor, timer, alert, and spawn list;
+- Warden action concepts such as monster_move and monster_attack;
+- stronger symbolic observation shape.
+
+What none of the downloaded attempts contain
+--------------------------------------------
+
+The richer attempts still do not contain a full board-game inventory/cards
+system:
+
+- no actual equipment loadouts or weapon tables;
+- no armor/shield state;
+- no treasure deck;
+- no event deck;
+- no spell cards with persistent preparation/exhaustion;
+- no shops or between-quest campaign economy;
+- no formal line between searchable furniture types;
+- no reusable room roster/object templates beyond simple JSON fields.
+
+Target 80/20 Mechanics
+======================
+
+The target is not a full RPG. It is a compact, readable dungeon board-game
+benchmark with just enough mechanics for AI behavior to be meaningfully
+interpretable.
+
+Design principles
+-----------------
+
+- Keep every player action as structured JSON and validate it in the environment.
+- Prefer small integer stats and short deterministic/rand-light rules.
+- Keep observations compact enough for nano policies.
+- Make mechanics trace-readable: every important state change should have a
+  plain event line and symbolic delta.
+- Keep Warden fixed-policy for evaluation comparability.
+- Do not scale dungeon difficulty by player count.
+- Score solo, duo, trio, and squad separately.
+- Add richness through orthogonal mechanics, not long prose.
+
+Cooperation Design
+==================
+
+DungeonGrid should reward cooperation mechanically, not just narratively. If two
+or more agents coordinate well, the score and trace should make that obvious.
+If they fail to coordinate, the failure should be interpretable: someone left
+the wizard exposed, ignored the dwarf's trap advantage, failed to report a key,
+blocked a corridor, or searched treasure while the alarm advanced.
+
+MARL benchmark patterns to preserve
+-----------------------------------
+
+Borrow the task-design patterns, not the theme:
+
+- Forced or soft specialization: agents have different affordances or costs.
+- Handoffs: one agent finds, carries, unlocks, protects, or delivers something
+  another agent made possible.
+- Timing pressure: some side objective gets worse if nobody acts.
+- Spatial coupling: narrow corridors, doors, and line-of-sight make positioning
+  affect partners.
+- Partial information: one agent can discover information another needs.
+- Cross-play: policies should coordinate with unfamiliar partners, not only
+  with clones of themselves.
+- Partner diversity: evaluate against scripted, aggressive, noisy, and
+  eventually learned partner/Warden policies.
+- Shared reward with diagnostic credit: primary score is party-level, while
+  secondary metrics reveal individual contributions.
+
+classic tabletop dungeon-crawler collaboration patterns
+-------------------------------------
+
+Use original DungeonGrid mechanics to recreate the cooperative shape:
+
+- Barbarian blocks/challenges heavy enemies so fragile roles can act.
+- Wizard spends limited spell resources where they change the fight.
+- Elf scouts/searches and can handle ranged support or quick side objectives.
+- Dwarf handles traps, locks, and hazardous fixtures more safely.
+- Objective carrier needs escort and route planning.
+- Warden pressure punishes isolation, delay, and ignored alarm actors.
+- Treasure and room-search greed competes with shared survival and objective
+  pace.
+
+Co-op challenge templates
+-------------------------
+
+1. Trap-lock handoff
+
+- Dwarf has best odds to reveal/disarm a trap or open a lock.
+- Other heroes can attempt it, but at worse odds or higher alert/damage risk.
+- Reward: disarm/open before party crosses; penalty or event for triggering.
+- Trace signal: `role_synergy_event: dwarf_safe_route`.
+
+2. Scout-report-act
+
+- Elf or forward hero discovers a hidden door, alarm actor, object clue, or
+  safer route.
+- The discovered information matters to a later hero's legal plan.
+- Message or proximity can make the follow-through visible.
+- Trace signal: discovery followed by another hero using the information.
+
+3. Doorway cover
+
+- Barbarian or armored hero holds a chokepoint while another hero searches,
+  casts, unlocks, or carries objective.
+- Guard/blocking/adjacency reduces incoming risk.
+- Trace signal: protected ally action while front-liner adjacent to threat or
+  doorway.
+
+4. Spell setup and finish
+
+- Wizard marks, damages, shields, or reveals.
+- Another hero uses the opening: barbarian finishes brute, elf escapes with
+  objective, dwarf safely crosses trap.
+- Trace signal: spell effect consumed by later partner action.
+
+5. Alarm suppression split
+
+- One hero pressures or pins the alarm actor.
+- Another searches or retrieves the objective.
+- Failure mode is clear: alarm advances because no one stayed adjacent or
+  defeated the actor.
+- Trace signal: `alarm_suppressed_by_pressure`.
+
+6. Escort and extraction
+
+- A carrier has the objective but is fragile/slow/targeted.
+- Other heroes clear path, body-block, heal, or draw Warden attacks.
+- Trace signal: protected carrier turns, adjacent escorts, attacks intercepted.
+
+7. Dual-route token objective
+
+- Two side rooms each contain a token/key/clue.
+- Party can split for speed but risks isolation.
+- Good play uses messages and role assignment.
+- Trace signal: split-route success with later regroup/door unlock.
+
+8. Treasure temptation
+
+- One object is optional but useful; objective timer/torch/alarm makes it risky.
+- Good coordination decides who searches while others maintain safety/pace.
+- Trace signal: optional treasure collected without losing objective tempo.
+
+Reward and metrics for cooperation
+----------------------------------
+
+Primary reward stays shared and objective-first. Cooperation should appear in
+secondary metrics and shaping rewards:
+
+- `role_synergy_events`: count and typed list.
+- `protected_carrier_turns`: carrier had escort/guard/clear path.
+- `alarm_suppressed_by_pressure`: Warden timer paused by hero pressure.
+- `trap_handled_before_crossing`: trap revealed/disarmed before any hero
+  triggered it.
+- `lock_opened_by_best_role`: dwarf/tool user handled lock or shrine fixture.
+- `scout_followthrough`: discovered info used by a later hero.
+- `message_followthrough`: message text/action pair appears relevant within
+  the next few turns.
+- `handoff_events`: item/key/objective discovered by one hero and used/carried
+  by another.
+- `frontline_cover_turns`: durable hero adjacent to threat while ally performs
+  noncombat objective/search action.
+- `spell_synergy_events`: spell setup consumed by partner damage, protection,
+  movement, or search.
+- `bad_interference_events`: blocking ally path, abandoning carrier, triggering
+  known trap, breaking line-of-sight plan.
+
+Reward shaping should be modest. The main way to reward collaboration is to
+make the dungeon easier to complete when heroes use their asymmetries well.
+Metrics can be richer than rewards.
+
+Player-count design
+-------------------
+
+All player counts are valid:
+
+- solo: one submitted hero; useful for baseline and debugging, intentionally
+  harder and often unable to realize all synergy metrics.
+- duo: first real collaboration slice; should include paired challenges such as
+  scout/fighter, lock/cover, alarm/objective.
+- trio: enough roles for split-objective and escort dynamics.
+- squad: full four-role cooperation; best expression of the benchmark.
+
+Do not scale monster HP, objective requirements, or torch pressure by player
+count. Instead, report solo/duo/trio/squad separately so the difficulty curve is
+visible rather than hidden.
+
+MARL Literature Pattern Map
+===========================
+
+This is a working map from common cooperative MARL benchmark ideas to DungeonGrid
+mechanics. The point is to make sure new features demonstrate collaboration
+requirements, not just dungeon flavor.
+
+Centralized training, decentralized execution
+---------------------------------------------
+
+Pattern:
+
+- During development/training, methods may see full traces and aggregate
+  returns.
+- During evaluation, each policy acts from its own observation and legal action
+  set.
+
+DungeonGrid fit:
+
+- Hero observations expose active hero state, visible map, local objects,
+  inventory, legal actions, recent messages, and recent events.
+- Full episode traces can include hidden Warden state, deck order, room tags,
+  and all hero observations for offline analysis.
+
+Functionality needed:
+
+- Store both per-hero observations and omniscient reviewer state.
+- Mark which fields were visible to the acting hero versus only available to
+  evaluators.
+- Keep action schemas/rules available through a rules-details tool rather than
+  dumping all legal actions into every observation.
+
+What demonstrates it:
+
+- A hero acts well despite not seeing a distant room because another hero sent
+  a message or previously revealed a clue.
+
+Decentralized partial observability
+-----------------------------------
+
+Pattern:
+
+- Each agent has only local observations; success depends on sharing or
+  inferring missing context.
+
+DungeonGrid fit:
+
+- Closed doors, hidden traps, secret doors, room contents, and Warden scripts
+  create local unknowns.
+- Split-route objectives make one hero's discovery useful to another.
+
+Functionality needed:
+
+- Per-agent visible map and visible object lists.
+- `party_messages` with sender/recipient/round.
+- Event logs that distinguish "hero saw X" from "party knows X".
+- Invalid-action feedback that tells the agent what failed and what changed,
+  without revealing hidden state.
+
+What demonstrates it:
+
+- Elf discovers a secret route, messages it, dwarf opens the relevant lock, and
+  objective carrier uses the route later.
+
+Heterogeneous agents and role specialization
+--------------------------------------------
+
+Pattern:
+
+- Agents have different capabilities, costs, or observation/action advantages.
+- Cooperation emerges because the best agent for a subtask is not always the
+  one nearest to it.
+
+DungeonGrid fit:
+
+- Barbarian, wizard, elf, dwarf have different HP, guard, focus, speed,
+  equipment, spells, and tool advantages.
+- Traps/locks/search/spells/frontline tasks create role-skewed payoffs.
+
+Functionality needed:
+
+- Equipment profiles.
+- Trap/lock/search DCs with role/tool modifiers.
+- Spell charges and spell effects.
+- Role-contribution metrics.
+
+What demonstrates it:
+
+- Dwarf detours to disarm trap before party crosses; barbarian delays monster
+  instead of wasting AP on lock; wizard saves spark_lance for brute.
+
+Coordination games / conventions
+--------------------------------
+
+Pattern:
+
+- Multiple valid strategies exist, but agents need compatible conventions:
+  who goes left, who carries, who searches, who holds doorway.
+
+DungeonGrid fit:
+
+- Dual-route token rooms, optional treasure rooms, escort route choices, and
+  alarm suppression allow several viable plans.
+
+Functionality needed:
+
+- Message action that carries enough plan text.
+- Trace labels for declared intent and later follow-through.
+- Room/object tags so transcripts can name the convention in human terms.
+
+What demonstrates it:
+
+- Hero_1 says "I hold the cultist; you search store"; hero_2 searches instead
+  of duplicating the cultist action.
+
+Ad hoc teamwork / cross-play
+----------------------------
+
+Pattern:
+
+- A focal policy must coordinate with unknown partners, not only a clone of
+  itself.
+
+DungeonGrid fit:
+
+- Evaluate against partner mixtures: greedy scout, cautious dwarf, aggressive
+  barbarian, spell-conserving wizard, noisy/message-heavy partner.
+- Warden variants remain fixed partner/eval side.
+
+Functionality needed:
+
+- Partner policy zoo by hero role.
+- Cross-play reporting by hero count, quest, partner archetype, and Warden
+  variant.
+- Trace metadata identifying partner policy family.
+
+What demonstrates it:
+
+- Focal wizard adapts when barbarian partner rushes rooms versus when dwarf
+  partner searches carefully.
+
+Role assignment and division of labor
+-------------------------------------
+
+Pattern:
+
+- Agents must allocate subtasks based on capability, position, and time.
+
+DungeonGrid fit:
+
+- Side rooms contain keys/tokens/treasure.
+- Alarm actor requires pressure while objective search continues.
+- Carrier must be chosen and protected.
+
+Functionality needed:
+
+- Subgoal tags in quest config: `alarm_actor`, `token_room`, `objective_room`,
+  `treasure_room`, `escape_route`.
+- Transcript extraction of "who did what" by room/object.
+
+What demonstrates it:
+
+- One hero pressures alarm, one retrieves token, one guards crossing, one
+  prepares escape path.
+
+Handoffs and shared object state
+--------------------------------
+
+Pattern:
+
+- One agent's action creates an opportunity another agent must consume.
+
+DungeonGrid fit:
+
+- Keys/tokens, opened doors, revealed traps, marked monsters, spell shields,
+  moved/cleared rubble, carried objective.
+
+Functionality needed:
+
+- Durable object state transitions with actor IDs.
+- Handoff event detector: actor A discovers/opens/marks; actor B uses/benefits.
+
+What demonstrates it:
+
+- Wizard marks crypt_brute; barbarian attacks marked brute.
+- Elf finds brass_key; dwarf uses it on shrine door.
+
+Temporal coordination and deadlines
+-----------------------------------
+
+Pattern:
+
+- Agents must synchronize under timers or delayed effects.
+
+DungeonGrid fit:
+
+- Torch pressure, bell alarm, Warden patrols, spell durations, guard status,
+  fragile relic heat, objective escape route.
+
+Functionality needed:
+
+- Timed script state in observation.
+- Event traces with expiry/round fields.
+- Metrics for "deadline handled" versus "deadline missed."
+
+What demonstrates it:
+
+- A hero stays adjacent to cultist until another hero finishes objective pickup.
+
+Spatial coordination and interference
+-------------------------------------
+
+Pattern:
+
+- Agent positions affect partners: blocking, crowding, opening paths, line of
+  sight, protecting vulnerable agents.
+
+DungeonGrid fit:
+
+- Doorways, corridors, line-of-sight attacks, trap tiles, objective carrier,
+  monster zones.
+
+Functionality needed:
+
+- Position snapshots each turn.
+- Path-block/interference detector.
+- Cover/protection detector.
+
+What demonstrates it:
+
+- Barbarian holds doorway while wizard fires over/around from safe line.
+- Failed case: ally blocks dwarf from reaching trap before party crosses.
+
+Communication and grounding
+---------------------------
+
+Pattern:
+
+- Communication only matters if it changes later behavior.
+
+DungeonGrid fit:
+
+- Message actions already exist; they should be evaluated for follow-through.
+
+Functionality needed:
+
+- Store raw message text and recipients.
+- Link messages to subsequent events using heuristic labels and LLM review.
+- Add `message_followthrough` and `ignored_warning` diagnostics.
+
+What demonstrates it:
+
+- "I found a locked box west; dwarf come open it" followed by dwarf moving west
+  and opening it.
+- Failed case: "do not step on trap at [7,8]" followed by ally stepping on it.
+
+Credit assignment
+-----------------
+
+Pattern:
+
+- Team reward is shared, but analysis needs to know which behaviors contributed.
+
+DungeonGrid fit:
+
+- Primary reward remains objective-first and shared.
+- Diagnostics can attribute contribution types by hero.
+
+Functionality needed:
+
+- Per-hero action usage by type.
+- Contribution event list with actor, beneficiary, room, object, and outcome.
+- Separate reward components in trace, especially scout/role/co-op shaping.
+
+What demonstrates it:
+
+- A low-damage dwarf still receives contribution credit for opening the route
+  that enabled objective completion.
+
+Curriculum and compositional generalization
+-------------------------------------------
+
+Pattern:
+
+- Agents learn simple subskills first, then combine them in held-out layouts.
+
+DungeonGrid fit:
+
+- Each of five dungeons emphasizes a different bundle: tutorial, alarm, search,
+  escort, locks.
+- Later held-out quests can recombine alarm + escort + locks.
+
+Functionality needed:
+
+- Quest tags by mechanic.
+- Metrics broken down by mechanic tag.
+- Train/eval splits over dungeons and Warden variants.
+
+What demonstrates it:
+
+- A policy trained on trap-lock and alarm separately handles a held-out shrine
+  alarm lock quest.
+
+Run Trace and LLM Review Design
+===============================
+
+DungeonGrid should emit traces that are easy for an LLM reviewer to inspect for
+successful or failed collaboration. The trace should not require the reviewer
+to reconstruct the whole game from raw state diffs.
+
+Trace layers
+------------
+
+Emit three synchronized layers:
+
+1. Raw machine trace
+
+- exact observations;
+- exact submitted plans;
+- executed actions;
+- skipped illegal actions;
+- unused plan suffix;
+- reward deltas;
+- full symbolic state after each action;
+- random draws/rolls/deck draws;
+- hidden Warden state.
+
+2. Event timeline
+
+Compact structured events:
+
+- `room_entered`
+- `object_seen`
+- `object_searched`
+- `item_found`
+- `item_used`
+- `door_opened`
+- `lock_opened`
+- `trap_revealed`
+- `trap_disarmed`
+- `trap_triggered`
+- `monster_attacked`
+- `monster_defeated`
+- `spell_cast`
+- `message_sent`
+- `alarm_advanced`
+- `alarm_suppressed`
+- `objective_taken`
+- `carrier_protected`
+- `escape_completed`
+- `interference`
+- `handoff`
+- `role_synergy`
+
+3. Reviewer transcript
+
+Human-readable but compact:
+
+- round/turn header;
+- active hero role, HP/AP, room;
+- message sent, if any;
+- plan summary;
+- executed actions summary;
+- important state changes;
+- collaboration tags detected;
+- missed opportunities or failures detected by heuristics.
+
+Suggested JSONL event shape
+---------------------------
+
+```json
+{
+  "episode_id": 1,
+  "quest_id": "bells_under_blackwater",
+  "round": 3,
+  "turn_index": 7,
+  "actor": "hero_2",
+  "role": "wizard",
+  "room_id": "bell_chapel",
+  "event_type": "spell_cast",
+  "summary": "wizard casts spark_lance at gloom_cultist for 1 damage",
+  "visible_to": ["hero_2", "party"],
+  "target": "gloom_cultist_1",
+  "beneficiary": "party",
+  "tags": ["alarm_pressure", "spell_setup"],
+  "state_refs": {
+    "position": [13, 5],
+    "target_position": [13, 4],
+    "alarm_timer": 1
+  },
+  "reward_delta": 0.07
+}
+```
+
+Suggested collaboration event shape
+-----------------------------------
+
+```json
+{
+  "type": "role_synergy",
+  "subtype": "trap_lock_handoff",
+  "status": "success",
+  "round_start": 2,
+  "round_end": 4,
+  "actors": ["hero_3", "hero_4"],
+  "roles": ["elf", "dwarf"],
+  "evidence": [
+    "elf revealed locked_box_west in west_lock_room",
+    "elf messaged dwarf to open the west box",
+    "dwarf opened locked_box_west",
+    "party obtained shrine_token before any hero triggered the trap"
+  ],
+  "quest_impact": "opened route toward shrine_core",
+  "review_prompt_hint": "Check whether the dwarf acted on information discovered by the elf."
+}
+```
+
+Reviewer transcript shape
+-------------------------
+
+Generate a plain `.md` or `.txt` transcript per episode:
+
+```text
+Quest: Bells Under Blackwater
+Mode: duo
+Heroes: hero_1 barbarian, hero_2 wizard
+Warden: scripted
+Outcome: failure, 4/6 rooms explored, alarm triggered
+
+Round 2
+hero_1 barbarian, HP 9/9, AP 3, room flooded_aisle
+Message: "I can hold the chapel door. Wizard, hit the cultist if you see it."
+Plan: move east, open door, guard
+Result: opened door_2 into bell_chapel; took guarded stance.
+Collaboration tags: doorway_cover_intent
+
+hero_2 wizard, HP 5/5, AP 3, room flooded_aisle
+Plan: move east, cast spark_lance at gloom_cultist, end turn
+Result: moved into line of sight; damaged gloom_cultist.
+Collaboration tags: spell_followthrough, alarm_pressure
+
+Warden
+Result: alarm suppressed because hero_1 adjacent to gloom_cultist.
+Collaboration tags: alarm_suppressed_by_pressure
+```
+
+LLM review prompts
+------------------
+
+Emit a short review packet that asks another LLM to judge collaboration without
+having to infer the benchmark rules from scratch:
+
+- "List three successful collaboration moments with evidence."
+- "List three failed or missed collaboration moments with evidence."
+- "Did messages affect later behavior? Cite message IDs and follow-up events."
+- "Did heroes use role advantages appropriately?"
+- "Did any hero interfere with another hero's plan?"
+- "Was the objective failure caused by coordination, mechanics, or exploration?"
+- "Assign collaboration labels: strong, partial, weak, none."
+
+Heuristic detectors before LLM review
+-------------------------------------
+
+Use simple detectors first, then let an LLM reviewer interpret:
+
+- Message follow-through:
+  message mentions room/object/role/action and later matching event occurs
+  within N turns.
+- Ignored warning:
+  message mentions trap/enemy/alarm/retreat and later avoidable failure occurs.
+- Handoff:
+  actor A reveals/finds/opens/marks; actor B uses/benefits within N turns.
+- Cover:
+  durable hero adjacent to monster/door while ally performs noncombat action in
+  same/adjacent room.
+- Carrier protection:
+  carrier has adjacent ally, shield/guard, or cleared path during Warden phase.
+- Bad blocking:
+  hero occupies only path tile and partner attempts/needs route through it.
+- Duplicated work:
+  two heroes search same spent object, move toward same non-shared side task, or
+  both idle while deadline advances.
+- Role mismatch:
+  non-specialist repeatedly attempts high-risk lock/trap while specialist is
+  alive, nearby, and available.
+
+Trace artifacts to write
+------------------------
+
+For each episode:
+
+- `rollout_episode_N.txt`: existing human transcript, upgraded.
+- `rollout_episode_N.events.jsonl`: structured event timeline.
+- `rollout_episode_N.collab.json`: heuristic collaboration/miscoordination
+  events.
+- `rollout_episode_N.review.md`: compact LLM-review-ready packet.
+- `metrics.json`: aggregate scalar metrics.
+
+For aggregate runs:
+
+- collaboration success counts by quest, player count, role, and partner policy;
+- failed collaboration counts by type;
+- message follow-through rate;
+- role advantage usage rate;
+- handoff success rate;
+- alarm/escort/lock challenge success rate.
+
+Batched Plans and Reveal Boundaries
+===================================
+
+DungeonGrid should use batched plan execution like Craftax-style macro-action
+rollouts, but with board-game reveal boundaries. The agent should not need one
+LLM call per micro-action. It should be able to submit a useful turn plan with
+multiple actions. But the environment should stop executing the remaining plan
+when the board state changes in a way a human player would naturally pause to
+reconsider.
+
+This is the desired control feel:
+
+- Agent sees current board state.
+- Agent submits a list of structured JSON action objects.
+- Environment executes routine actions in order.
+- If an action reveals meaningful new state, remaining queued actions are
+  dropped or held unused.
+- Agent receives the updated observation and can replan.
+
+This avoids both extremes:
+
+- too many LLM calls for single-tile movement;
+- forced follow-through after a door opens, trap appears, monster activates,
+  chest reveals an ambush, or another hero's message changes the plan.
+
+Craftax analogy
+---------------
+
+Craftax uses a tool like `craftax_interact({"actions_list": [...]})` to submit
+a short macro-action. The rollout loop executes the action batch, records the
+state before and after, and trains/evaluates on those decision turns.
+
+DungeonGrid should keep that interface idea:
+
+- one tool call per decision point;
+- list-valued action payload;
+- trace stores state before, submitted actions, executed actions, decision
+  reward, and state after.
+
+DungeonGrid differs because the environment is turn/AP based and contains
+explicit reveal moments. So the executor needs a stop condition beyond "batch
+finished" or "episode done."
+
+Tool contract
+-------------
+
+Agents should have two tools:
+
+1. `dungeongrid_act`: submit a structured action plan for the active hero.
+2. `dungeongrid_rules`: query compact rules/action-schema details when needed.
+
+The observation does not include the full legal action list. It renders the
+board state, visible objects, remembered information, recent events, and known
+objective/timer state. The system prompt explains the high-level rules and tells
+the agent to use `dungeongrid_rules` for mechanics details.
+
+Primary action tool:
+
+```json
+{
+  "name": "dungeongrid_act",
+  "arguments": {
+    "intent": "Brief natural-language plan for review.",
+    "actions": [
+      {"type": "move", "direction": "east", "target": [2, 1]},
+      {"type": "open_door", "target": "door_1"},
+      {"type": "move", "direction": "east", "target": [3, 1]}
+    ]
+  }
+}
+```
+
+`intent` is optional for environment validity but should be encouraged because
+it makes transcript review much easier.
+
+Important: `actions` is a list of JSON objects, not a list of string action
+names. This differs from Craftax. DungeonGrid actions carry structured targets and
+payloads:
+
+```json
+[
+  {"type": "move", "direction": "east", "target": [2, 1], "cost": 1},
+  {"type": "search_object", "target": "bronze_chest", "room_id": "ledger_treasury", "cost": 1},
+  {
+    "type": "message",
+    "target": "hero_4",
+    "cost": 1,
+    "payload": {"text": "Dwarf, I found a locked box west. Can you open it?"}
+  }
+]
+```
+
+The text observation should be optimized for the acting hero to understand the
+board. Legality is determined by the environment at execution time. The prompt
+should say: submit structured JSON actions using the known action schemas; if
+you are unsure about an action's required fields or rule details, call
+`dungeongrid_rules` before submitting the plan.
+
+Rules-details tool:
+
+```json
+{
+  "name": "dungeongrid_rules",
+  "arguments": {
+    "topic": "actions"
+  }
+}
+```
+
+Supported rule topics should be compact and stable:
+
+- `turn`
+- `actions`
+- `movement`
+- `combat`
+- `spells`
+- `items`
+- `objects`
+- `traps_locks`
+- `doors_rooms`
+- `messages`
+- `warden`
+- `scoring`
+
+Example response for `topic = "actions"`:
+
+```text
+Actions must be JSON objects with a "type" field. Common action types:
+move {direction}
+open_door {target}
+attack_melee {target, optional weapon}
+attack_ranged {target, optional weapon}
+cast {spell, target}
+inspect_tile {target:[x,y]}
+inspect_room {}
+search_object {target}
+interact_object {target}
+disarm {target}
+use_item {item, optional target}
+message {target, payload:{text}}
+guard {}
+end_turn {}
+The environment will validate AP, range, visibility, adjacency, and target state.
+```
+
+Execution result shape:
+
+```json
+{
+  "intent": "Open the east door, then advance if the room is safe.",
+  "submitted_plan": [...],
+  "executed_actions": [...],
+  "skipped_illegal_actions": [...],
+  "unused_actions": [...],
+  "stop_reason": "reveal_boundary",
+  "reveal_events": [
+    {
+      "type": "door_opened_new_room",
+      "summary": "door_1 opened into rat_chapel; 2 skitterlings and 1 chest became visible"
+    }
+  ],
+  "state_before_ref": "obs_12",
+  "state_after_ref": "obs_13"
+}
+```
+
+Invalid-action feedback
+-----------------------
+
+Invalid actions should be real game feedback, not silent filtering. If a queued
+action is reached and illegal, the environment records it, skips it, and returns
+a concise reason in the next observation/turn trace.
+
+Examples:
+
+```text
+Invalid action skipped:
+{"type":"attack_melee","target":"skitterling_2"}
+Reason: target is not adjacent. Use attack_ranged if you have line of sight, or
+move adjacent first.
+```
+
+```text
+Invalid action skipped:
+{"type":"open_door","target":"door_4"}
+Reason: door_4 is not visible or not adjacent to hero_3.
+```
+
+```text
+Invalid action skipped:
+{"type":"disarm","target":"lantern_pit"}
+Reason: trap must be revealed and adjacent before it can be disarmed.
+```
+
+Invalid feedback should not reveal hidden state. For example, if the agent tries
+to disarm an unknown trap ID it has not discovered, the reason should say the
+target is unknown/not visible, not confirm a hidden trap exists.
+
+Reveal boundary semantics
+-------------------------
+
+Stop executing the queued plan when any of these happen:
+
+- New room revealed by opening a door or discovering a secret passage.
+- New monster becomes visible.
+- New trap is revealed or triggered.
+- Chest/object interaction reveals content, hazard, key item, ambush, or card.
+- Deck/event/card draw changes available information or immediate threat.
+- Objective is picked up, dropped, damaged, or changes carrier.
+- Alarm/timer visibly advances, is suppressed, or triggers reinforcement.
+- Warden action changes visible board state during a Warden phase.
+- A hero takes damage, is downed, healed, slowed, shielded, or gains/losses a
+  tactically relevant status.
+- A message is received by the active hero from another hero since the last
+  observation.
+- Legal action set changes in a way that is not just AP decrement, e.g. new
+  attack/search/open/use options appear.
+- The acting hero enters a new authored room for the first time.
+- The current hero's AP is exhausted, turn ends, phase changes, or episode ends.
+
+Do not stop for routine non-revealing state changes:
+
+- moving through already-known empty corridor;
+- repeated movement within a known safe room;
+- guard/end_turn;
+- failed attack that reveals no new information and causes no new status;
+- AP decrement alone;
+- opening an already-known door if no new tiles/entities/objects become visible.
+
+This should be configurable:
+
+```yaml
+planning:
+  execution_mode: until_reveal
+  max_actions_per_call: 8
+  min_actions_per_call: 1
+  stop_on_new_room: true
+  stop_on_new_visible_entity: true
+  stop_on_new_visible_object: true
+  stop_on_damage_or_status: true
+  stop_on_message_received: true
+  stop_on_legal_action_delta: true
+```
+
+Plan outcome categories
+-----------------------
+
+Each submitted plan should be categorized:
+
+- `completed`: all actions executed before AP/turn boundary.
+- `turn_exhausted`: AP ran out or end_turn executed.
+- `reveal_boundary`: new board state requires replanning.
+- `phase_boundary`: Warden/next hero phase began.
+- `illegal_skips_only`: illegal actions skipped but no reveal occurred.
+- `all_illegal`: no submitted action executed.
+- `episode_done`: quest ended.
+- `invalid_feedback`: one or more proposed actions were illegal and the agent
+  should use the feedback to repair future plans.
+
+Skipped versus unused
+---------------------
+
+Keep the distinction:
+
+- skipped illegal actions: action was reached, but illegal at that moment; keep
+  going unless the plan/turn ends.
+- unused actions: action was never reached because AP ended, a reveal boundary
+  fired, phase changed, or episode ended.
+
+This distinction is important for policy learning. Skipped actions indicate bad
+grounding. Unused actions may indicate sensible human-like overplanning.
+
+Observation rendering after a boundary
+--------------------------------------
+
+When a boundary fires, the next observation should explicitly say why:
+
+```text
+Execution paused: reveal boundary.
+Reason: opening door_1 revealed rat_chapel.
+Newly visible: skitterling_1 at [2,4], skitterling_2 at [3,4], bronze_chest at [5,4].
+Unused planned actions: move east, inspect_room.
+Replan now from the updated board state.
+```
+
+This makes the benchmark kinder to small models and makes review traces much
+clearer.
+
+Training/example implications
+-----------------------------
+
+The trainable decision unit should be a reveal-bounded plan, not a primitive
+action:
+
+- `s_t`: observation before plan.
+- `a_t`: submitted tool call with intent and action list.
+- `execution`: executed/skipped/unused with stop reason.
+- `s_t_plus_1`: observation after routine actions or reveal boundary.
+- `decision_reward`: reward accumulated over executed actions.
+- `boundary_reason`: why control returned to the agent.
+
+That matches the Craftax macro-action training shape while preserving
+DungeonGrid's board-game pacing.
+
+Mechanical analogues to keep
+----------------------------
+
+Use familiar generic ideas:
+
+- four archetypal heroes;
+- dungeon controller;
+- room/corridor map;
+- closed and secret doors;
+- traps that can be searched for and disarmed;
+- treasure/object chests;
+- simple attack and defense dice;
+- a few spells;
+- monsters with simple roles;
+- objective item plus escape condition;
+- fixed quest scripts.
+
+Mechanical analogues to avoid copying too closely
+-------------------------------------------------
+
+Avoid:
+
+- copied quest names, maps, room layouts, text, or art;
+- branded monster/item names;
+- exact card names or card text;
+- distinctive artifact names;
+- exact published quest sequence;
+- proprietary iconography or trade dress.
+
+Use DungeonGrid-native names instead:
+
+- Warden, dungeon phase, alert, torch, scout reward;
+- skitterling, bone_guard, gloom_cultist, crypt_brute;
+- spark_lance, mend_wounds, shrine_token, healing_draught;
+- lantern_crypt, bells_under_blackwater, ashen_pantry, cinder_exit,
+  low_shrine_locks.
+
+Priority Backlog
+================
+
+P0: make current runs more interpretable
+----------------------------------------
+
+1. Authored room metadata
+
+   Add optional room entries to quest JSON:
+
+   - id
+   - name
+   - description
+   - tiles or region seed/door-bounded region
+   - tags, e.g. entry, treasure, objective, danger, secret
+
+   Use authored rooms for:
+
+   - room exploration metrics;
+   - scout reward;
+   - prompt rendering;
+   - event narration when entering a new room.
+
+   This is the single highest-value improvement because GPT agents currently
+   receive sparse map symbols. Named rooms make traces much easier for humans
+   to interpret.
+
+2. Implement use_item
+
+   Current action cost exists but the action is not resolved. Add:
+
+   - healing_draught: restore small HP amount, consume item;
+   - maybe torch_oil later: restore torch/visibility pressure;
+   - maybe shrine_token remains non-consumable key progress.
+
+3. Better chest contents
+
+   Move from string contents to structured content entries:
+
+   - coin_cache/gold amount;
+   - healing_draught;
+   - shrine_token/key;
+   - ambush spawn;
+   - empty.
+
+   Keep every opening trace explicit: what was found, who carries it, and what
+   objective/key state changed.
+
+4. Real trap DCs
+
+   Extend Trap with:
+
+   - kind;
+   - dc;
+   - damage;
+   - armed/revealed;
+   - optional effect, e.g. damage, alarm, slow.
+
+   Disarm should roll against trap DC with dwarf bonus. Inspect/search should
+   roll against DC or use focus. Keep the math simple and visible.
+
+P1: add meaningful dungeon decisions
+------------------------------------
+
+5. Locked and keyed doors
+
+   Extend Door with:
+
+   - locked;
+   - key_id;
+   - secret;
+   - discovered.
+
+   Legal actions should show whether a visible door is locked and what is
+   needed when known. Opening a locked door without the key should be illegal
+   or produce a clear failed narration only when an explicit legal "try_open"
+   action exists.
+
+6. Formal object system
+
+   Merge objectives/chests/special fixtures toward an objects table:
+
+   - kind: objective, chest, altar, lever, locked_shrine, exit_marker;
+   - state: hidden, visible, closed, opened, looted, spent;
+   - contents: list of entries;
+   - interaction requirements.
+
+   Keep compatibility wrappers so existing quests continue to load.
+
+7. Bell alarm script
+
+   Make bells_under_blackwater fully support:
+
+   - named alarm actor;
+   - timer that advances during Warden phase;
+   - suppression when a hero is adjacent or actor is defeated;
+   - reinforcement spawn on trigger;
+   - optional score metric alarm_prevented.
+
+8. Warden action traces
+
+   Keep Warden fixed-policy, but expose clearer atomic trace actions:
+
+   - monster_move;
+   - monster_attack;
+   - monster_wait;
+   - trigger_script.
+
+   The player should still never control Warden. This is for observability and
+   partner-policy variants.
+
+P2: make roles feel different without bloat
+-------------------------------------------
+
+9. Role abilities
+
+   Keep these as small, legible modifiers:
+
+   - barbarian: cleave or bonus melee versus adjacent monsters.
+   - wizard: limited spell list with high focus, low HP.
+   - elf: hybrid ranged/search/support, mend_wounds.
+   - dwarf: trap/door specialist, bonus disarm, maybe sturdy guard.
+
+10. Minimal equipment analogue
+
+   Avoid a full gear simulator. Add optional equipment slots only if needed for
+   readability:
+
+   - weapon_profile: melee, ranged, staff, axe;
+   - armor_profile: light, sturdy, robe;
+   - item inventory remains small and explicit.
+
+   These can be static role defaults rather than loot progression.
+
+11. Spell preparation/exhaustion
+
+   If spell spam becomes confusing, add per-quest or per-room charges:
+
+   - spark_lance charges;
+   - mend_wounds charges;
+   - optional reveal/ward spell later.
+
+   Do not copy spell card names or card text from external games.
+
+P3: richer evaluation surfaces
+------------------------------
+
+12. Room-level success traces
+
+   Add a compact episode report:
+
+   - rooms entered in order;
+   - rooms searched;
+   - doors opened;
+   - traps revealed/disarmed/triggered;
+   - treasures found;
+   - messages sent;
+   - objective carrier timeline;
+   - monsters defeated by hero.
+
+13. Human-readable quest briefs
+
+   Add short original briefs for each quest. These should help policies and
+   humans understand objective pressure without becoming long fiction.
+
+14. Optional tactical tags
+
+   Add tags that help analysis, not policy cheating:
+
+   - danger_room;
+   - treasure_room;
+   - objective_room;
+   - alternate_route;
+   - alarm_source;
+   - locked_goal.
+
+Implementation Shape
+====================
+
+Recommended order
+-----------------
+
+1. Add backward-compatible data fields:
+   Door.locked/key_id, Trap.kind/dc/effect, Chest.contents as string or list,
+   GameState.rooms/room_visits.
+
+2. Extend GridEngine quest parsing:
+   Load authored rooms, structured doors/traps/objects/chests when present;
+   fall back to ASCII-derived current behavior.
+
+3. Replace inferred room metric use:
+   Prefer authored rooms when present; otherwise keep door-separated computed
+   regions.
+
+4. Implement use_item and structured chest contents.
+
+5. Port room metadata and richer chest/trap/script fields into all five current
+   quest JSON files using original DungeonGrid names and text.
+
+6. Add bell_alarm actor pressure and explicit Warden trace events.
+
+7. Update prompt renderer to surface:
+   current room, newly entered room, known room list, inventory, item actions,
+   trap DC/status, locked door requirements, and alarm state.
+
+8. Run one validation pass only after the implementation slice is ready.
+
+Open questions
+==============
+
+- Should "message" cost AP forever, or should communication be free but bounded
+  by message count/length? AP cost makes coordination a real tradeoff, but it
+  may suppress communication in nano models.
+- Should inspect_room be deterministic for visible hidden features, or should
+  it roll against DC using focus? Randomness is more board-game-like; determinism
+  is easier for policy learning.
+- Should Warden always choose warden_auto, or should policy variants choose
+  atomic monster actions for more inspectable adversary style?
+- Should scout reward credit entering rooms, revealing room tiles, or fully
+  searching rooms? The current reward credits visibility; authored rooms let us
+  separate "entered" from "searched."
+- Should solo mode have a separate briefing that tells the policy the dungeon is
+  intentionally harder and no missing allies exist?
+
+Near-term recommendation
+========================
+
+Do the P0 slice next:
+
+- authored room metadata for all five dungeons;
+- room-based scout reward from authored rooms;
+- use_item healing_draught;
+- structured chest contents;
+- trap kind/DC fields.
+
+That gives us a much more legible classic tabletop dungeon-crawler benchmark without introducing
+copyright risk or a huge rules surface.
+
+Advanced MVP: After The 80/20 Slice
+===================================
+
+Once the P0/P1 mechanics are in place, the next good target is a "DungeonGrid
+Advanced MVP": still compact and original, but rich enough that human devs can
+see classic dungeon-board-game dynamics in model behavior.
+
+The first four advanced systems are the best ROI:
+
+1. Combat equipment profiles
+----------------------------
+
+Difficulty: medium-small.
+
+Add first-class equipment fields to heroes:
+
+- weapon_profile;
+- armor_profile;
+- optional offhand/tool profile;
+- attack dice / range / targeting modifiers;
+- defense dice / guard modifiers;
+- role restrictions.
+
+Useful starting profiles:
+
+- heavy_blade: strong adjacent melee, barbarian-friendly.
+- axe: high variance melee, possible cleave hook.
+- shortbow: ranged line-of-sight attack, weaker in melee.
+- staff: weak melee, spell/focus support.
+- dagger: light backup weapon.
+- sturdy_armor: better defense, maybe lower speed.
+- robe: low defense, spell-friendly.
+- trap_tools: dwarf/search/disarm bonus.
+
+Why it matters:
+
+- Makes hero roles more interpretable without a campaign economy.
+- Gives agents tactical choices about range, positioning, and who should engage.
+- Makes combat traces richer while keeping JSON actions exact.
+
+Implementation notes:
+
+- Static role defaults first; no shop or gear progression yet.
+- Actions can remain mostly the same, but legal action objects should expose the
+  weapon/profile used when relevant.
+- Keep equipment names DungeonGrid-native and avoid copying published item names
+  or card text.
+
+2. Furniture and searchable tactical objects
+--------------------------------------------
+
+Difficulty: medium.
+
+Add object kinds that live in rooms:
+
+- chest;
+- table;
+- shelf;
+- weapon_rack;
+- altar;
+- tomb;
+- crate;
+- locked_box;
+- lever;
+- rubble;
+- fountain.
+
+Add legal actions:
+
+- search_object;
+- inspect_object;
+- interact_object;
+- maybe force_object for noisy/risky opening.
+
+Object fields:
+
+- id;
+- kind;
+- pos;
+- room_id;
+- state: hidden, visible, searched, opened, spent;
+- contents/effects;
+- search_dc;
+- tags: treasure, clue, hazard, objective, key, lore.
+
+Why it matters:
+
+- Creates recognizable "search the room" behavior.
+- Gives non-combat turns meaningful choices.
+- Lets quest authors place treasure, keys, traps, and clues in interpretable
+  room fixtures instead of anonymous chests.
+
+Implementation notes:
+
+- Keep the object list small at first.
+- Do not make every room decorative object mechanically active.
+- The prompt renderer should group visible objects by room.
+
+3. Deck primitives and small original card sets
+-----------------------------------------------
+
+Difficulty: medium.
+
+Add a generic deck system:
+
+- deck definitions in quest or global JSON;
+- shuffled draw pile;
+- discard pile;
+- optional exhaust/remove-from-game pile;
+- draw events with visible card ID/name/effect summary;
+- deterministic seed support for reproducible rollouts.
+
+Initial decks:
+
+- treasure_deck: coin cache, healing draught, key clue, minor boon, trap,
+  wandering monster/ambush.
+- event_deck: Warden pressure, torch sputter, distant noise, patrol shift,
+  hidden passage hint.
+- artifact_deck: optional rare quest rewards, probably disabled in benchmark
+  scoring until campaign mode exists.
+- spell_cards: spell list as explicit limited-use cards/charges rather than a
+  free-form spell taxonomy.
+
+Why it matters:
+
+- Adds uncertainty and recognizable board-game texture.
+- Makes searching treasure/furniture a risk-reward choice.
+- Creates compact, trace-readable surprises without huge quest scripts.
+
+Implementation notes:
+
+- Keep all card names/effects original.
+- Avoid copying published card names, exact distributions, or wording.
+- Expose drawn card effects in traces and observations.
+- Start with about 12-20 original treasure/event cards, not a giant content
+  library.
+
+4. Larger monster roster with compact special abilities
+-------------------------------------------------------
+
+Difficulty: medium-large.
+
+Add more DungeonGrid-native monsters with one short special each:
+
+- skitterling: swarm adjacent targets.
+- bone_guard: holds position, gains guard near tomb/door.
+- gloom_cultist: alarm/channel/ranged pressure.
+- crypt_brute: slow heavy guardian.
+- ash_imp: fast nuisance, ignores some difficult terrain.
+- grave_archer: ranged line-of-sight attack.
+- hollow_knight: armored blocker.
+- mire_slime: slows or taxes movement.
+- ember_wisp: fragile ranged elemental.
+- lockjaw_hound: rushes isolated heroes.
+
+Special ability fields:
+
+- trigger: on_activate, on_attack, on_damaged, on_death, aura, script;
+- cooldown or once_per_round;
+- target rule;
+- effect;
+- trace text.
+
+Why it matters:
+
+- Warden decisions become more varied.
+- Agents must adapt to monster roles, not just compute nearest attack.
+- Human reviewers can see whether policies recognize threats.
+
+Implementation notes:
+
+- One compact ability per monster to start.
+- Warden policy must know how to use specials without becoming learned or
+  participant-controlled.
+- Every special should produce a clear event line.
+
+Later Layers, Not MVP
+=====================
+
+Dice-exact published-rule reproduction
+--------------------------------------
+
+Technically manageable, but not a good target. Use a legally distinct
+DungeonGrid dice analogue instead of copying exact published movement/combat
+expression. We can preserve the familiar feel of attack/defense dice,
+movement variance, and risk without aiming for exact reproduction.
+
+True tabletop table feel
+------------------------
+
+This is valuable but larger than engine MVP. It includes player negotiation,
+dramatic Warden narration, room dressing, miniatures-style spatial summaries,
+and readable episode transcripts. We should approach it as a presentation and
+prompting layer after the mechanics are solid:
+
+- richer room-entry narration;
+- party message summaries;
+- Warden narration snippets;
+- room-by-room transcript report;
+- optional generated/ASCII map snapshots.
+
+Full campaign economy
+---------------------
+
+Persistent gold, shops, armor/weapon purchases, artifact carryover, and hero
+advancement are out of scope for the first benchmark track. They may be useful
+later for a campaign benchmark, but they make single-episode evaluation much
+harder to interpret.
+
+Concrete Content Direction
+==========================
+
+This section starts turning the mechanics into a DungeonGrid-native content bible.
+Names are intentionally original while preserving familiar tactical roles.
+
+Hero loadouts
+-------------
+
+barbarian
+
+- Identity: front-line breaker.
+- Default weapon: iron_cleaver.
+- Backup: hand_axe.
+- Armor: chain_vest.
+- Signature hook: once per turn, if a melee attack defeats a monster, may make
+  one free adjacent chip attack for 1 die or gain +1 guard until next Warden
+  attack.
+- Primary decisions: hold doorway, break blocker, escort fragile carrier,
+  absorb Warden pressure.
+
+wizard
+
+- Identity: fragile spell problem-solver.
+- Default weapon: rune_staff.
+- Backup: dagger.
+- Armor: travel_robes.
+- Signature hook: spell cards/charges; strong focus, weak mundane combat.
+- Primary decisions: spend limited spells now or conserve, stay protected,
+  target high-value enemies, heal/ward through spell cards if configured.
+
+elf
+
+- Identity: hybrid scout, archer, light support.
+- Default weapon: ash_shortbow.
+- Backup: slim_blade.
+- Armor: leather_jack.
+- Signature hook: quick_search or quick_step; can search/fight while moving
+  better than others.
+- Primary decisions: reveal rooms, kite threats, grab side treasure, support
+  objective carrier.
+
+dwarf
+
+- Identity: sturdy trap and lock specialist.
+- Default weapon: stone_hatchet.
+- Backup: pick_hammer.
+- Armor: rivet_mail.
+- Tool: trap_tools.
+- Signature hook: trapcraft; strong disarm/search/locked-object interactions.
+- Primary decisions: lead into suspicious rooms, open locks, disarm hazards,
+  anchor narrow spaces.
+
+Weapon profiles
+---------------
+
+iron_cleaver
+
+- Type: melee, heavy.
+- Dice: 4 attack dice adjacent.
+- Tags: cleave_candidate, loud.
+- Restriction: barbarian preferred; other roles may be unable or penalized.
+- Trace feel: strong but committed doorway fighting.
+
+hand_axe
+
+- Type: melee/light thrown.
+- Dice: 2 adjacent, 1 at range 2-3 if line of sight.
+- Tags: flexible, thrown.
+- Effect: optional thrown use can exhaust until recovered at tile/room end.
+
+rune_staff
+
+- Type: melee/focus.
+- Dice: 1 adjacent.
+- Tags: focus_channel.
+- Effect: +1 effective focus for spell DC/range, not raw damage.
+
+dagger
+
+- Type: melee/light.
+- Dice: 1 adjacent.
+- Tags: backup, quiet.
+- Effect: no penalty in tight spaces; weak but reliable fallback.
+
+ash_shortbow
+
+- Type: ranged.
+- Dice: 2 at range 2-6 with line of sight; 1 adjacent or cannot fire adjacent,
+  depending on how strict we want positioning to be.
+- Tags: ranged, quiet.
+- Restriction: elf preferred.
+
+slim_blade
+
+- Type: melee/light.
+- Dice: 2 adjacent.
+- Tags: mobile.
+- Effect: elf may move one tile after a miss if AP remains or via role hook.
+
+stone_hatchet
+
+- Type: melee.
+- Dice: 2 adjacent.
+- Tags: sturdy, tool_like.
+- Effect: no special damage, but compatible with shield/tool loadout.
+
+pick_hammer
+
+- Type: melee/tool.
+- Dice: 2 adjacent.
+- Tags: lock_tool, brittle_breaker.
+- Effect: can force rubble/locked_box with risk of alert.
+
+grave_sling
+
+- Type: ranged/simple.
+- Dice: 1 at range 2-5.
+- Tags: simple_ranged.
+- Effect: low-damage ranged option for non-archers.
+
+Armor and tool profiles
+-----------------------
+
+travel_robes
+
+- Guard modifier: 0.
+- Tags: focus_friendly.
+- Effect: no spell penalty.
+
+leather_jack
+
+- Guard modifier: +1.
+- Tags: light.
+- Effect: no speed penalty.
+
+chain_vest
+
+- Guard modifier: +2.
+- Tags: medium.
+- Effect: no speed penalty for barbarian, maybe -1 speed for wizard.
+
+rivet_mail
+
+- Guard modifier: +2.
+- Tags: sturdy.
+- Effect: dwarf ignores first shove/slow effect per quest or gains trap damage
+  resistance.
+
+warded_cloak
+
+- Guard modifier: +1.
+- Tags: spell_resist.
+- Effect: reduce first spell/aura damage by 1.
+
+trap_tools
+
+- Tool modifier: +2 disarm/search locks.
+- Tags: dwarf_tool.
+- Effect: enables some lock/fixture actions.
+
+Spell cards / charges
+---------------------
+
+Use "spell cards" as a limited-use ability list, not copied card content.
+Each spell is a small JSON effect with charges. Recommended first set:
+
+spark_lance
+
+- Role: wizard primary attack.
+- Cost: 2 AP.
+- Effect: ranged focus attack, line of sight, ignores 1 guard on ethereal or
+  fragile targets.
+- Charges: 3 per quest or deck/card based.
+
+mend_wounds
+
+- Role: elf/wizard support depending config.
+- Cost: 2 AP.
+- Effect: restore 2 HP to adjacent or visible ally within short range.
+- Charges: 2 per quest.
+
+ember_shield
+
+- Role: defensive timing.
+- Cost: 1-2 AP.
+- Effect: target hero gains guarded plus one-time damage reduction.
+- Charges: 1-2 per quest.
+
+stone_sense
+
+- Role: scouting.
+- Cost: 1 AP.
+- Effect: reveal one adjacent hidden door/trap or mark nearest hidden feature in
+  current room without exact coordinates.
+- Charges: 1 per quest.
+
+gust_step
+
+- Role: movement/tactical reposition.
+- Cost: 1 AP.
+- Effect: move one hero up to 2 tiles through visible walkable floor, no trap
+  trigger on first tile if already revealed.
+- Charges: 1 per quest.
+
+lantern_flare
+
+- Role: room reveal/control.
+- Cost: 2 AP.
+- Effect: reveal visible room objects and apply -1 attack to skitterlings/imps
+  until Warden phase.
+- Charges: 1 per quest.
+
+quietus_mark
+
+- Role: boss/priority target marker.
+- Cost: 2 AP.
+- Effect: mark one visible monster; next hero attack against it gains +1 die.
+- Charges: 1 per quest.
+
+Treasure and event cards
+------------------------
+
+Treasure cards should be short, original, and trace-friendly.
+
+Suggested treasure deck:
+
+- coin_cache: gain 1 treasure.
+- old_silver: gain 2 treasure.
+- healing_draught: add usable item.
+- focus_charm: next spell gains +1 focus, then discard.
+- oil_flask: restore 2 torch or cancel one darkness event.
+- chalk_map: reveal exits/doors in current room.
+- brass_key: opens one matching keyed door/locked_box.
+- loose_bolts: trap; take 1 damage unless dwarf/trap_tools adjacent.
+- bite_nest: ambush; spawn skitterling adjacent if free.
+- deadfall_string: reveal and arm a trap in room.
+- warded_token: one-time +1 guard against Warden attack.
+- empty_pouch: no effect, but records searched fixture.
+
+Suggested event deck:
+
+- torch_sputter: torch -1 or visibility radius -1 this round.
+- distant_clatter: alert +1.
+- patrol_shift: nearest idle monster moves 1 toward party.
+- damp_air: ranged attacks max range -1 until next round.
+- lucky_echo: reveal one closed door or object in known room.
+- grim_stillness: no effect except Warden trace; useful null card.
+- restless_floor: first move through current room risks 1 damage unless
+  inspected.
+- warden_focus: next monster attack gains +1 die.
+- old_draft: one hero may move 1 free toward exit or entry.
+- hidden_latch_hint: next inspect_tile/inspect_room gains +2.
+
+Artifact cards should be disabled for primary benchmark scoring at first:
+
+- ember_medallion: one-time auto-stabilize from 0 HP.
+- oath_ring: carrier gains +1 guard while carrying objective.
+- glass_compass: once per quest reveal direction to objective room.
+- dusk_candle: once per quest prevent torch loss for 3 rounds.
+
+Furniture and object kinds
+--------------------------
+
+Every object should answer: what can the hero do, what can go wrong, and how
+does a trace make that obvious?
+
+chest
+
+- Actions: inspect_object, search_object, interact_object/open.
+- Contents: treasure/card/item/ambush/key.
+- Risk: trap or ambush.
+
+table
+
+- Actions: search_object, overturn maybe.
+- Contents: clue, minor treasure, event card.
+- Risk: noise/alert.
+
+shelf
+
+- Actions: search_object.
+- Contents: spell clue, oil, key, empty.
+- Risk: falling junk, dust event.
+
+weapon_rack
+
+- Actions: search_object, interact_object.
+- Contents: temporary weapon profile or thrown weapon.
+- Risk: brittle item breaks after one use.
+
+altar
+
+- Actions: inspect_object, interact_object.
+- Contents/effects: heal, curse, reveal objective clue, token.
+- Risk: alert/spawn if disturbed.
+
+tomb
+
+- Actions: inspect_object, search_object.
+- Contents: treasure/artifact clue.
+- Risk: bone_guard spawn or curse.
+
+crate
+
+- Actions: search_object, force_object.
+- Contents: coin, oil, empty.
+- Risk: noisy force opens alert.
+
+locked_box
+
+- Actions: inspect_object, unlock_object, force_object.
+- Contents: key/treasure/token.
+- Risk: trap or broken contents on force.
+
+lever
+
+- Actions: inspect_object, interact_object.
+- Effect: open door, disable trap, trigger Warden event.
+- Risk: ambiguous until inspected.
+
+rubble
+
+- Actions: inspect_object, clear_object.
+- Effect: opens route or reveals object.
+- Risk: AP sink, noise, damage.
+
+fountain
+
+- Actions: inspect_object, drink/interact.
+- Effect: heal, focus, poison, clue.
+- Risk: unknown effect unless inspected.
+
+Monster roster
+--------------
+
+skitterling
+
+- Role: weak swarm.
+- Stats: low HP, low attack, low guard, fast.
+- Special: swarm_bite; +1 attack die if another skitterling adjacent to target.
+- Warden use: surround isolated heroes, punish overextension.
+
+bone_guard
+
+- Role: room sentinel.
+- Stats: medium HP, medium attack/guard, slow.
+- Special: hold_line; gains +1 guard while adjacent to a closed/open door,
+  tomb, altar, or objective object.
+- Warden use: block chokepoints.
+
+gloom_cultist
+
+- Role: alarm caster.
+- Stats: fragile, ranged pressure.
+- Special: channel_alarm; if not adjacent to a hero during Warden phase, advance
+  alarm script or apply alert +1.
+- Warden use: force heroes to pressure a backline target.
+
+crypt_brute
+
+- Role: heavy guardian.
+- Stats: high HP, high attack, medium guard, slow.
+- Special: shove; on hit, push target 1 tile if possible or apply slowed.
+- Warden use: punish objective carriers and door blockers.
+
+ash_imp
+
+- Role: fast nuisance.
+- Stats: low HP, low attack, high speed.
+- Special: flicker; first time damaged each round, reduce damage by 1 or step
+  one tile if free.
+- Warden use: tax actions, chase fragile heroes.
+
+grave_archer
+
+- Role: ranged threat.
+- Stats: low-medium HP, ranged attack, weak guard.
+- Special: pinning_shot; on damage, target loses 1 AP next turn or cannot
+  benefit from guard.
+- Warden use: force line-of-sight and cover reasoning.
+
+hollow_knight
+
+- Role: armored blocker.
+- Stats: medium HP, high guard, slow.
+- Special: shield_wall; adjacent monsters gain +1 guard.
+- Warden use: anchor squads of weaker monsters.
+
+mire_slime
+
+- Role: area denial.
+- Stats: medium HP, low attack, low guard.
+- Special: sticky_floor; adjacent heroes spend +1 AP to move away or suffer
+  slow status.
+- Warden use: split party, slow escape.
+
+ember_wisp
+
+- Role: fragile elemental ranged/torch pressure.
+- Stats: very low HP, ranged focus damage.
+- Special: snuff_light; on activation, torch -1 if no hero adjacent, or attack
+  nearby hero.
+- Warden use: threaten visibility.
+
+lockjaw_hound
+
+- Role: charger.
+- Stats: low-medium HP, medium attack, fast.
+- Special: rush; if it moves 2+ tiles before attacking, +1 attack die.
+- Warden use: punish isolated backline heroes.
+
+Quest Configuration Sketches
+============================
+
+The five benchmark quests should each emphasize a different mechanic bundle
+while sharing the same core rules. Difficulty remains fixed across solo, duo,
+trio, and squad slices.
+
+1. lantern_crypt
+----------------
+
+Role in suite: tutorial/generalist dungeon.
+
+Core objective:
+
+- Recover the ember_idol from the inner vault and return to the entry stairs.
+
+Rooms:
+
+- entry_hall: safe start, first closed door.
+- rat_chapel: skitterling swarm and first searchable furniture.
+- ledger_treasury: chest/table with treasure_deck draw and healing_draught.
+- lower_guardroom: bone_guard blocker and optional side treasure.
+- inner_vault: crypt_brute guarding objective, objective pickup spawns
+  skitterling reinforcement.
+
+Mechanics emphasized:
+
+- opening doors;
+- room exploration/scout reward;
+- first chest/treasure risk;
+- melee doorway fighting;
+- objective pickup and escape path.
+
+Suggested objects:
+
+- bronze_chest in ledger_treasury: treasure_deck draw, biased toward
+  healing_draught/coin_cache.
+- cracked_mural table/shelf analogue: chalk_map clue.
+- tomb_marker in lower_guardroom: optional treasure with bone_guard pressure.
+
+Suggested monsters:
+
+- skitterlings in rat_chapel;
+- bone_guard in lower_guardroom;
+- crypt_brute in inner_vault.
+
+Scripts:
+
+- on_objective_taken: alert +2, spawn one skitterling near lower route.
+- optional round_limit_soft for torch pressure.
+
+2. bells_under_blackwater
+-------------------------
+
+Role in suite: alarm and backline pressure.
+
+Core objective:
+
+- Stop or pressure the cultist, recover bell_clapper_shard, and escape.
+
+Rooms:
+
+- mill_stairs: start.
+- flooded_aisle: movement/visibility tax.
+- bell_chapel: gloom_cultist alarm actor near objective.
+- silt_store: treasure room with trap/object search.
+- drowned_crossing: reinforcement route.
+
+Mechanics emphasized:
+
+- alarm timer;
+- Warden pressure;
+- deciding whether to rush cultist or search;
+- ranged line of sight;
+- treasure temptation under timer.
+
+Suggested objects:
+
+- waterlogged_chest: treasure_deck draw, possible loose_bolts/deadfall_string.
+- bell_rope lever: inspect/interact can delay alarm or trigger alert if mishandled.
+- silted_shelf: oil_flask or empty_pouch.
+
+Suggested monsters:
+
+- gloom_cultist as alarm actor;
+- grave_archer or skitterlings as reinforcements;
+- bone_guard in drowned_crossing.
+
+Scripts:
+
+- bell_alarm: timer advances during Warden phase if cultist alive, objective not
+  taken, and no hero adjacent.
+- on_alarm_trigger: alert +5, spawn bone_guard/skitterling patrol.
+- alarm_prevented metric if cultist defeated/pressured before trigger.
+
+3. ashen_pantry
+---------------
+
+Role in suite: search, hidden doors, object reasoning.
+
+Core objective:
+
+- Find the sealed_provision_ledger and escape.
+
+Rooms:
+
+- kitchen_entry: start with visible objects.
+- ash_pantry: many shelves/crates, one real objective lead.
+- cold_store: hidden route/locked box.
+- servant_cut: secret door shortcut.
+- ledger_nook: objective behind search/lock/trap layer.
+
+Mechanics emphasized:
+
+- furniture search categories;
+- secret doors;
+- traps/locked boxes;
+- dwarf/elf utility;
+- avoiding wasted AP on empty objects.
+
+Suggested objects:
+
+- ash_shelves: search for chalk_map or key clue.
+- sealed_crate: force/search; noisy but may hold brass_key.
+- locked_box: contains ledger clue or treasure.
+- loose_floor_trap: DC trap near objective.
+
+Suggested monsters:
+
+- ash_imp nuisance;
+- mire_slime in cold_store as movement tax;
+- small skitterling ambush from crate.
+
+Scripts:
+
+- secret_hint: first successful room search can reveal direction to servant_cut.
+- noisy_force: alert +1 and possible ash_imp spawn.
+
+4. cinder_exit
+--------------
+
+Role in suite: escort and fragile carrier discipline.
+
+Core objective:
+
+- Take the cinder_relic and bring it to a different exit. If carrier is downed,
+  the relic may break or drop depending final rule.
+
+Rooms:
+
+- ember_entry: start.
+- cracked_gallery: ranged threat sightlines.
+- cinder_bridge: trap/movement hazard.
+- relic_chamber: objective guarded by crypt_brute/ember_wisp.
+- flame_exit: alternate escape endpoint.
+
+Mechanics emphasized:
+
+- route planning;
+- protecting objective carrier;
+- movement pressure;
+- Warden intercepts;
+- torch/visibility events.
+
+Suggested objects:
+
+- ember_basin/fountain analogue: inspect for heal/focus or torch restoration.
+- cracked_weapon_rack: temporary hand_axe/shortbow.
+- bridge_rubble: clear or detour.
+
+Suggested monsters:
+
+- ember_wisp for torch pressure;
+- crypt_brute as guardian;
+- lockjaw_hound as pursuit enemy.
+
+Scripts:
+
+- on_objective_taken: alert +2, flame_exit opens or becomes visible.
+- relic_heat: carrier may suffer penalty if ending round adjacent to ember_wisp
+  or in hazard room.
+
+5. low_shrine_locks
+-------------------
+
+Role in suite: keys/tokens, locked doors, optional order planning.
+
+Core objective:
+
+- Collect enough shrine tokens/keys, open the low shrine lock, recover
+  low_shrine_emblem, and escape.
+
+Rooms:
+
+- low_entry: start.
+- west_lock_room: first token behind object/trap.
+- east_lock_room: second token guarded by monster.
+- sunken_altar: lever/altar ambiguity.
+- shrine_core: locked objective chamber.
+- return_hall: escape pressure.
+
+Mechanics emphasized:
+
+- locked/keyed doors;
+- object requirements;
+- multiple subgoals;
+- coordination across split routes;
+- Warden punishes party splitting.
+
+Suggested objects:
+
+- locked_box_west: token behind trap/lock.
+- altar_socket: accepts token, may reveal secret or open door.
+- lever_pair: order-sensitive but forgiving; wrong order alert +1.
+- shrine_core_door: locked until token_requirement satisfied.
+
+Suggested monsters:
+
+- hollow_knight guarding shrine_core;
+- bone_guard sentinels;
+- gloom_cultist optional channeler if alarm variant desired.
+
+Scripts:
+
+- token_requirement: 2.
+- locked_shrine_door: opens when enough tokens deposited/carried.
+- wrong_lever: alert +1 and Warden event draw.
+
+Configuration Schema Direction
+==============================
+
+Eventually, each quest JSON should be able to express this shape:
+
+```json
+{
+  "quest_id": "lantern_crypt",
+  "title": "The Lantern Crypt",
+  "briefing": "Original short quest text.",
+  "objective": {
+    "type": "retrieve_and_escape",
+    "item_id": "ember_idol",
+    "escape_tile": [1, 1],
+    "objective_room": "inner_vault"
+  },
+  "map": {"ascii": "..."},
+  "rooms": [
+    {
+      "id": "entry_hall",
+      "name": "Entry Hall",
+      "description": "Original one-sentence description.",
+      "tags": ["entry"],
+      "region_seed": [1, 1]
+    }
+  ],
+  "heroes": {
+    "barbarian": {
+      "weapon_profile": "iron_cleaver",
+      "armor_profile": "chain_vest"
+    }
+  },
+  "objects": {
+    "bronze_chest": {
+      "kind": "chest",
+      "pos": [11, 4],
+      "room_id": "ledger_treasury",
+      "state": "closed",
+      "contents": [{"type": "draw_card", "deck": "treasure_deck"}],
+      "search_dc": 4,
+      "tags": ["treasure"]
+    }
+  },
+  "doors": {
+    "shrine_core_door": {
+      "pos": [10, 8],
+      "locked": true,
+      "key_id": "shrine_token"
+    }
+  },
+  "traps": {
+    "lantern_pit": {
+      "pos": [7, 8],
+      "kind": "pit",
+      "dc": 4,
+      "damage": 1,
+      "effect": {"type": "damage", "amount": 1}
+    }
+  },
+  "decks": {
+    "treasure_deck": ["coin_cache", "healing_draught", "bite_nest"]
+  },
+  "scripts": {
+    "on_objective_taken": {
+      "effects": [{"type": "increase_alert", "amount": 2}]
+    }
+  }
+}
+```
+
+The schema should stay backward-compatible with current ASCII-derived doors,
+traps, chests, monsters, and objective parsing. Authored fields override or
+augment generated ones.

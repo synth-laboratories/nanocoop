@@ -1,0 +1,37 @@
+track: prompt_opt_1usd_gpt54_family
+run_name: dungeongrid_prompt_opt_smoke
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: outputs/prompt_opt_dungeongrid_smoke
+
+model:
+  name: gpt-4.1-nano
+  temperature: 0.0
+  max_tokens: 256
+  plan_horizon: 1
+
+policy:
+  seed_prompt: |
+    Coordinate the four heroes through legal dungeon actions.
+
+env:
+  eval_layouts: [lantern_crypt]
+  num_heroes: 4
+  player_count_mode: squad
+  max_steps: 24
+  observation_mode: mixed
+
+partner_zoo:
+  eval: [scripted_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 1
+  default_episode_count: 1
+  episode_ids: [1]
+
+prompt_opt:
+  probe_episodes_per_candidate: 1
+  candidates:
+    - Keep the party together and open doors cautiously.
+    - Use the Dwarf to inspect and disarm traps before rushing.

@@ -140,6 +140,39 @@ class NoisyPartner(BasePartner):
         return "WAIT"
 
 
+@dataclass
+class ScriptedWardenPartner(BasePartner):
+    name: str = "scripted_warden"
+
+    def act(self, observation: Observation) -> str:
+        return "warden_auto"
+
+
+@dataclass
+class AggressiveWardenPartner(BasePartner):
+    name: str = "aggressive_warden"
+
+    def act(self, observation: Observation) -> str:
+        for action in observation.available_actions:
+            if '"type":"activate_monster"' in action:
+                return action
+        return "warden_auto"
+
+
+@dataclass
+class NoisyWardenPartner(BasePartner):
+    name: str = "noisy_warden"
+    seed: int = 0
+
+    def __post_init__(self) -> None:
+        self._rng = random.Random(self.seed)
+
+    def act(self, observation: Observation) -> str:
+        if self._rng.random() < 0.2:
+            return self._rng.choice(list(observation.available_actions))
+        return "warden_auto"
+
+
 def make_partner(name: str, seed: int = 0):
     if name == "courier":
         return CourierPartner()
@@ -149,4 +182,10 @@ def make_partner(name: str, seed: int = 0):
         return HandoffPartner()
     if name == "noisy":
         return NoisyPartner(seed=seed)
+    if name == "scripted_warden":
+        return ScriptedWardenPartner()
+    if name == "aggressive_warden":
+        return AggressiveWardenPartner()
+    if name == "noisy_warden":
+        return NoisyWardenPartner(seed=seed)
     raise ValueError(f"Unknown partner: {name}")

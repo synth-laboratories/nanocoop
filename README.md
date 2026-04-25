@@ -4,7 +4,11 @@
 
 NanoCoop mirrors the spirit of NanoHorizon, but swaps the long-horizon single-agent Craftax setting for a **cooperative, partially observable, stochastic coordination task**. Each track gives you **one Python file** containing a baseline algorithm. Your job is to write a better one.
 
-> The benchmark target is the official **OvercookedV2** environment stack via **JaxMARL**.
+> The benchmark now has two co-equal environment tracks: official
+> **OvercookedV2** via **JaxMARL**, and **DungeonGrid**, a text-only
+> DM + Barbarian/Wizard/Elf/Dwarf dungeon crawler.
+> DungeonGrid includes a Craftax-style ReAct/tool-call harness via
+> `configs/react_dungeongrid_gpt5_nano_solo.yaml`.
 
 ---
 
@@ -268,6 +272,8 @@ nanocoop/
 Important docs:
 
 - `docs/task-overcooked-v2.md`
+- `docs/task-dungeongrid.md`
+- `docs/dungeongrid-quest-schema.md`
 - `docs/partner-zoo.md`
 - `docs/tracks/offline_20min_1xa100_40gb.md`
 - `docs/tracks/rlvr_20min_2xa100_40gb.md`

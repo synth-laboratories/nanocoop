@@ -1,0 +1,33 @@
+track: rlvr_20min_2xa100_40gb
+run_name: dungeongrid_rlvr_smoke
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: outputs/rlvr_dungeongrid_smoke
+
+policy:
+  seed_prompt: |
+    Coordinate the party, conserve hit points, and recover the objective.
+
+env:
+  train_layouts: [lantern_crypt]
+  train_seeds: [1]
+  eval_layouts: [lantern_crypt]
+  num_heroes: 4
+  player_count_mode: squad
+  max_steps: 24
+  observation_mode: mixed
+
+partner_zoo:
+  train: [scripted_warden]
+  eval: [scripted_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 1
+  default_episode_count: 1
+  episode_ids: [1]
+
+rlvr:
+  iterations: 1
+  episodes_per_iteration: 1
+  exploration_rate: 0.05
