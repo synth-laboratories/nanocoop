@@ -8,10 +8,8 @@ from typing import Any
 from nanocoop.baselines import offline_sft, prompt_opt, rlvr
 from nanocoop.envs import make_backend
 from nanocoop.evaluation import evaluate_package
-from nanocoop.evaluation import package_to_policy
 from nanocoop.episode_plan import build_cross_play_episodes, resolve_episode_ids, selected_episode_ids
 from nanocoop.io import load_json, load_yaml
-from nanocoop.partner_zoo import make_partner
 from nanocoop.policy import make_seed_package
 from nanocoop.record_bundle import write_record_bundle
 from nanocoop.schema import PolicyPackage
@@ -48,6 +46,8 @@ def _cmd_starter_agent(args: argparse.Namespace) -> int:
         prompt=str(config.get("policy", {}).get("seed_prompt", "")),
         model_name=str(config.get("model", {}).get("name", "")) or None,
     )
+    output_dir = config.get("output_dir")
+    rollout_traces = {} if output_dir and not args.no_gif else None
     results = evaluate_package(
         package,
         config,
@@ -55,6 +55,7 @@ def _cmd_starter_agent(args: argparse.Namespace) -> int:
         episode_ids=resolve_episode_ids(args.episodes),
         workers=args.workers,
         progress=True,
+        rollout_trace_sink=rollout_traces,
     )
     metrics = summarize_eval(results)
     metrics.update(run_contract_metadata(config))
@@ -69,22 +70,24 @@ def _cmd_starter_agent(args: argparse.Namespace) -> int:
     package.metadata.update(
         {
             "track": config.get("track", "starter_agent"),
-            "algorithm": "nochange_starter_agent",
+            "algorithm": str(config.get("policy", {}).get("kind") or "nochange_starter_agent"),
         }
     )
-    output_dir = config.get("output_dir")
     if output_dir:
-        notes = ["No-change starter policy package."]
+        policy_kind = str(config.get("policy", {}).get("kind") or "nochange_starter_agent")
+        notes = [f"Starter policy package: `{policy_kind}`."]
         if metrics.get("failed_episodes"):
             notes.append(
                 "Known v0.1 limitation: unresolved wide-layout episodes are retained "
                 "as visible baseline failures, not hidden from the score."
             )
-        gif_path = None
-        if not args.no_gif:
-            gif_path = _write_representative_gif(package, config, results, output_dir)
-            if gif_path is not None:
-                notes.append(f"rollout gif: `{gif_path.name}`")
+        gif_paths: list[Path] = []
+        if rollout_traces is not None:
+            gif_paths = _write_rollout_gifs(config, results, rollout_traces, output_dir)
+            if gif_paths:
+                notes.append(
+                    f"rollout gifs: `{len(gif_paths)}` cross-play episodes captured."
+                )
         summary = render_summary_markdown(
             track=str(config.get("track", "starter_agent")),
             run_name=str(config.get("run_name", "starter_agent")),
@@ -103,30 +106,28 @@ def _cmd_starter_agent(args: argparse.Namespace) -> int:
     return 0
 
 
-def _write_representative_gif(
-    package: PolicyPackage,
+def _write_rollout_gifs(
     config: dict[str, Any],
     results,
+    rollout_traces: dict[int, Any],
     output_dir: str,
-):
-    cross_play = [row for row in results if row.mode == "cross_play"]
+) -> list[Path]:
+    cross_play = [
+        row
+        for row in results
+        if row.mode == "cross_play" and row.episode_id is not None and row.episode_id in rollout_traces
+    ]
     if not cross_play:
-        return None
-    representative = next((row for row in cross_play if row.success), cross_play[0])
+        return []
     backend = make_backend(config)
-    trace = backend.rollout(
-        focal_policy=package_to_policy(
-            package, config, rng_seed=representative.episode_id or representative.seed
-        ),
-        partner_policy=make_partner(representative.partner_name, seed=representative.seed),
-        layout=representative.layout,
-        seed=representative.seed,
-        partner_name=representative.partner_name,
-        mode="cross_play",
-        capture_states=True,
-    )
-    gif_name = f"rollout_episode_{representative.episode_id or representative.seed}.gif"
-    return backend.write_rollout_gif(trace, Path(output_dir) / gif_name)
+    gif_paths: list[Path] = []
+    for row in cross_play:
+        trace = rollout_traces.get(row.episode_id)
+        if trace is None:
+            continue
+        gif_name = f"rollout_episode_{row.episode_id}.gif"
+        gif_paths.append(backend.write_rollout_gif(trace, Path(output_dir) / gif_name))
+    return gif_paths
 
 
 def _cmd_eval(args: argparse.Namespace) -> int:

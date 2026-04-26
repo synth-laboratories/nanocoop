@@ -1,0 +1,43 @@
+track: starter_agent
+run_name: gpt41_nano_dungeongrid_squad_nochange_baseline
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: records/starter_agent/2026-04-24_gpt41_nano_dungeongrid_squad_nochange_baseline
+
+model:
+  name: gpt-4.1-nano
+  api_base: https://api.openai.com/v1
+  temperature: 0.0
+  max_tokens: 512
+  plan_horizon: 2
+
+policy:
+  seed_prompt: |
+    You control the hero party in a text-only cooperative dungeon crawl.
+    Coordinate the Barbarian, Wizard, Elf, and Dwarf.
+    Respect the legal action list exactly.
+    Prioritize survival, objective recovery, and escape.
+    Let the Barbarian anchor melee, the Wizard use ranged magic, the Elf flex, and the Dwarf handle traps.
+
+env:
+  eval_layouts:
+    - lantern_crypt
+    - bells_under_blackwater
+    - ashen_pantry
+    - cinder_exit
+    - low_shrine_locks
+  num_heroes: 4
+  player_count_mode: squad
+  max_steps: 120
+  observation_mode: mixed
+
+partner_zoo:
+  eval: [scripted_warden, aggressive_warden, noisy_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 3
+  default_episode_count: 15
+  default_episode_sample_seed: 20260424
+  workers: 1
+  episode_ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]

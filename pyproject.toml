@@ -13,7 +13,9 @@ authors = [
   {name = "OpenAI"},
 ]
 dependencies = [
+  "dungeongrid @ file:///Users/joshpurtell/Documents/GitHub/DungeonGrid/dist/dungeongrid-0.1.0a6-py3-none-any.whl",
   "numpy>=1.26",
+  "pydantic>=2.0",
   "PyYAML>=6.0",
   "requests>=2.31",
 ]
@@ -21,6 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 overcookedv2 = [
   "imageio[pillow]>=2.34",
+  "imageio-ffmpeg>=0.6.0",
   "jaxmarl>=0.1.0",
 ]
 

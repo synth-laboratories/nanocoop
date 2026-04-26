@@ -7,8 +7,8 @@ from typing import Any
 from nanocoop.envs import make_backend
 from nanocoop.episode_plan import select_cross_play_episodes
 from nanocoop.partner_zoo import make_partner
-from nanocoop.policy import HybridLookupPolicy, RemoteChatPolicy
-from nanocoop.schema import EvalEpisodeResult, PolicyPackage
+from nanocoop.policy import HybridLookupPolicy, RemoteChatPolicy, DungeonGridReActPolicy
+from nanocoop.schema import EpisodeTrace, EvalEpisodeResult, PolicyPackage
 
 
 def package_to_policy(
@@ -19,6 +19,10 @@ def package_to_policy(
     rng_seed: int = 0,
 ):
     model_cfg = config.get("model", {})
+    policy_cfg = config.get("policy", {})
+    policy_kind = str(policy_cfg.get("kind", "")).lower()
+    if policy_kind in {"dungeongrid_react", "react_dungeongrid"}:
+        return DungeonGridReActPolicy.from_config(package, config)
     api_base = model_cfg.get("api_base")
     if api_base:
         return RemoteChatPolicy.from_config(package, config)
@@ -33,6 +37,7 @@ def evaluate_package(
     episode_ids: list[int] | None = None,
     workers: int | None = None,
     progress: bool = False,
+    rollout_trace_sink: dict[int, EpisodeTrace] | None = None,
 ) -> list[EvalEpisodeResult]:
     env_cfg = config.get("env", {})
     layouts = list(env_cfg.get("eval_layouts", []))
@@ -51,7 +56,10 @@ def evaluate_package(
             seed=episode.seed,
             partner_name=episode.partner_name,
             mode="cross_play",
+            capture_states=rollout_trace_sink is not None,
         )
+        if rollout_trace_sink is not None:
+            rollout_trace_sink[episode.episode_id] = trace
         return EvalEpisodeResult(
             layout=episode.layout,
             partner_name=episode.partner_name,
@@ -61,6 +69,8 @@ def evaluate_package(
             mode="cross_play",
             episode_id=episode.episode_id,
             step_count=len(trace.steps),
+            llm_call_count=int(trace.metadata.get("focal_llm_call_count", 0) or 0),
+            metadata=trace.metadata,
         )
 
     if worker_count > 1 and len(selected_episodes) > 1:
@@ -114,24 +124,32 @@ def evaluate_package(
         ]
         for seed in self_seeds:
             for layout in layouts:
+                self_partner = self_policy
+                self_partner_name = "self"
+                if str(config.get("backend", "")).lower() == "dungeongrid":
+                    self_partner_name = str(env_cfg.get("self_play_warden", "scripted_warden"))
+                    self_partner = make_partner(self_partner_name, seed=seed)
+
                 trace = backend.rollout(
                     focal_policy=self_policy,
-                    partner_policy=self_policy,
+                    partner_policy=self_partner,
                     layout=layout,
                     seed=seed,
-                    partner_name="self",
+                    partner_name=self_partner_name,
                     mode="self_play",
                 )
                 results.append(
                     EvalEpisodeResult(
                         layout=layout,
-                        partner_name="self",
+                        partner_name=self_partner_name,
                         seed=seed,
                         total_reward=trace.total_reward,
                         success=trace.success,
                         mode="self_play",
                         episode_id=None,
                         step_count=len(trace.steps),
+                        llm_call_count=int(trace.metadata.get("focal_llm_call_count", 0) or 0),
+                        metadata=trace.metadata,
                     )
                 )
 

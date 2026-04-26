@@ -10,5 +10,6 @@ build/
 .env
 *.log
 outputs/
+records/starter_agent/*/
 records/**/episode_results.jsonl
 records/**/periodic_eval/

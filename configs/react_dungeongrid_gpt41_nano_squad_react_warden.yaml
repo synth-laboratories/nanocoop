@@ -1,0 +1,53 @@
+track: starter_agent
+run_name: gpt41_nano_dungeongrid_squad_react_warden
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: records/starter_agent/2026-04-26_gpt41_nano_dungeongrid_squad_react_warden
+
+model:
+  name: gpt-4.1-nano
+  api_base: https://api.openai.com/v1
+  temperature: 0.0
+  max_tokens: 768
+  timeout_seconds: 60
+  max_tool_rounds: 6
+
+warden_policy:
+  kind: dungeongrid_warden_react
+  fallback: deterministic_warden
+  model:
+    name: gpt-4.1-nano
+    api_base: https://api.openai.com/v1
+    temperature: 0.0
+    max_tokens: 512
+    timeout_seconds: 60
+    max_tool_rounds: 3
+  seed_prompt: |
+    You are the DungeonGrid Warden. Pressure the party's coordination failures
+    fairly, using only bounded Warden action candidates.
+
+policy:
+  kind: dungeongrid_react
+  seed_prompt: |
+    You control one DungeonGrid hero in DungeonGrid.
+    Submit queued OpenEnv ReAct-style structured JSON actions for only the
+    active hero. Legal actions are not listed; use visible state, rules context,
+    and environment feedback. Coordinate by sending party messages when useful.
+
+env:
+  eval_layouts: [lantern_crypt]
+  num_heroes: 4
+  player_count_mode: squad
+  max_steps: 40
+  observation_mode: mixed
+
+partner_zoo:
+  eval: [scripted_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 1
+  default_episode_count: 1
+  default_episode_sample_seed: 20260426
+  workers: 1
+  episode_ids: [1]

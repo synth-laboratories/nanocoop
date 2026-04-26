@@ -1,0 +1,45 @@
+track: starter_agent
+run_name: gpt54_nano_dungeongrid_squad_roster_react
+backend: dungeongrid
+benchmark_eligible: false
+output_dir: records/starter_agent/2026-04-24_gpt54_nano_dungeongrid_roster_squad_react
+
+model:
+  name: gpt-5.4-nano
+  api_base: https://api.openai.com/v1
+  temperature: 0.0
+  max_tokens: 768
+  token_limit_field: max_completion_tokens
+  omit_temperature: true
+  timeout_seconds: 60
+  max_tool_rounds: 6
+
+policy:
+  kind: dungeongrid_react
+  seed_prompt: |
+    You control one DungeonGrid hero in DungeonGrid.
+    Zargon/Warden is always controlled by the environment.
+    Submit a queued OpenEnv ReAct-style list of structured JSON action objects
+    for only the active hero. Legal actions are not listed; use the visible
+    board state, rules context, and environment feedback.
+    Prefer objective progress, survival, exploration, and escape. Use several actions
+    when AP permits. In multi-hero runs, send message actions to party or a named
+    hero from party_roster when you have a useful role split or local report.
+
+env:
+  eval_layouts: [lantern_crypt]
+  num_heroes: 4
+  player_count_mode: squad
+  max_steps: 40
+  observation_mode: mixed
+
+partner_zoo:
+  eval: [scripted_warden]
+
+eval:
+  episode_seed_start: 1
+  episodes_per_combo: 1
+  default_episode_count: 1
+  default_episode_sample_seed: 20260424
+  workers: 1
+  episode_ids: [1]

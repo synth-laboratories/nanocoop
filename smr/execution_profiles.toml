@@ -1,0 +1,49 @@
+schema_version = "2026-04-14-local-execution-profile-v2"
+
+[[profiles]]
+profile_id = "nanocoop_daytona"
+product = "nanocoop"
+host_kind = "daytona"
+daytona_snapshot = "daytona-small"
+required_runtime_kind = "local_daytona"
+required_repo = "synth-laboratories/nanocoop"
+local_source_kind = "slot_git_mirror"
+
+[profiles.capabilities]
+requires_craftax = false
+requires_jax = true
+requires_torch = false
+requires_transformers = false
+requires_vllm = false
+
+[[profiles]]
+profile_id = "nanocoop_local_docker"
+product = "nanocoop"
+host_kind = "docker"
+docker_image = "ghcr.io/synth-laboratories/nanocoop-local:latest"
+required_runtime_kind = "local_docker"
+required_repo = "synth-laboratories/nanocoop"
+local_source_kind = "slot_git_mirror"
+
+[profiles.capabilities]
+requires_craftax = false
+requires_jax = true
+requires_torch = false
+requires_transformers = false
+requires_vllm = false
+
+[[profiles]]
+profile_id = "nanocoop_local_native"
+product = "nanocoop"
+host_kind = "docker"
+docker_image = "ghcr.io/synth-laboratories/nanocoop-local:latest"
+required_runtime_kind = "local_native"
+required_repo = "synth-laboratories/nanocoop"
+local_source_kind = "slot_git_mirror"
+
+[profiles.capabilities]
+requires_craftax = false
+requires_jax = true
+requires_torch = false
+requires_transformers = false
+requires_vllm = false

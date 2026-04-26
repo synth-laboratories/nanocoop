@@ -21,7 +21,15 @@ Use this for real benchmark runs.
 
 ## Starter baseline
 
-The first no-change focal policy is `gpt-4.1-nano` with the seed cooperative prompt from `configs/starter_agent_gpt41_nano_overcooked_v2.yaml`. The model chooses short cooperative macro-action plans and the adapter executes them for several primitive environment ticks before replanning.
+The official submission surface is `submission/agent.py`, which must expose
+`define()`, `train(data_dir, out_dir)`, and
+`eval(checkpoint_dir, data_dir, out_dir)`.
+
+The first no-change focal policy is `gpt-4.1-nano` with the seed cooperative
+prompt translated from `configs/starter_agent_gpt41_nano_overcooked_v2.yaml`
+into `submission/agent.py`. The model chooses short cooperative macro-action
+plans and the adapter executes them for several primitive environment ticks
+before replanning.
 
 Run:
 
@@ -31,13 +39,18 @@ Run:
 
 Requires `OPENAI_API_KEY` in the environment.
 
-That score is the baseline-to-beat before any offline, RLVR, or prompt-optimization method changes. NanoCoop is meant to measure cooperative-RL and post-training method progress, not larger model substitution.
+That score is the baseline-to-beat before any offline, RLVR, or
+prompt-optimization method changes. NanoCoop is meant to measure cooperative-RL
+and post-training method progress, not larger model substitution.
 
 The Qwen3.5 configs remain in-tree as the forward open-model target, matching the NanoHorizon pattern once open serving is ready.
 
 ## Official v0.1 evaluation
 
 Official v0.1 records use the pinned default 20 cross-play episodes selected in config. The 48-episode grid remains available for diagnostics and future expansion.
+
+The same `eval()` entrypoint must work both on public train episode IDs and on
+held-out leaderboard episode IDs. Only `data_dir` changes.
 
 Run official records with:
 
