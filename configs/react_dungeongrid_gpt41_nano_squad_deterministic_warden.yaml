@@ -20,6 +20,9 @@ policy:
     active hero. Legal actions are not listed; use visible state, rules context,
     and environment feedback. Coordinate by sending party messages when useful.
 
+warden_policy:
+  kind: deterministic_warden
+
 env:
   eval_layouts: [lantern_crypt]
   num_heroes: 4

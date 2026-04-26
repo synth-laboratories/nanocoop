@@ -1160,7 +1160,13 @@ class DungeonGridWardenReActPolicy:
                 if force_act
                 else "auto",
             )
-            body = self._post_chat_completions(payload)
+            try:
+                body = self._post_chat_completions(payload)
+            except requests.RequestException as exc:
+                return self._fallback_action(
+                    observation,
+                    reason=f"llm_request_failed:{type(exc).__name__}",
+                )
             if self._completion_budget_exhausted_without_output(body):
                 return self._fallback_action(
                     observation,
@@ -1216,6 +1222,7 @@ class DungeonGridWardenReActPolicy:
         if fallback_used:
             self.fallback_count += 1
             action.setdefault("warden_fallback_reason", "outside_bounded_warden_candidates")
+        action = self._require_all_monster_warden_action(observation, action)
         action_type = str(action.get("type") or "unknown")
         self.action_counts[action_type] = self.action_counts.get(action_type, 0) + 1
         self.decisions.append(
@@ -1235,10 +1242,44 @@ class DungeonGridWardenReActPolicy:
             observation
         )
         action["warden_fallback_reason"] = reason
+        action = self._require_all_monster_warden_action(observation, action)
         action_type = str(action.get("type") or "unknown")
         self.action_counts[action_type] = self.action_counts.get(action_type, 0) + 1
         self.decisions.append({"action": dict(action), "fallback_used": True, "reason": reason})
         return action
+
+    def _require_all_monster_warden_action(
+        self, observation: dict[str, Any], action: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Use the whole-Warden turn candidate when it is available.
+
+        Player heroes submit granular plans, but a Warden turn is responsible for
+        all currently active monsters. The private candidate list always includes
+        the bounded engine action for that full turn when it is legal.
+        """
+
+        legal = observation.get("legal_actions") or []
+        warden_auto = next(
+            (candidate for candidate in legal if candidate.get("type") == "warden_auto"),
+            None,
+        )
+        if not isinstance(warden_auto, dict) or action.get("type") == "warden_auto":
+            return action
+        forced = dict(warden_auto)
+        for key in (
+            "warden_policy",
+            "warden_intent",
+            "warden_axis_pressure",
+            "warden_fairness_check",
+            "warden_fallback_reason",
+        ):
+            if action.get(key) is not None:
+                forced[key] = action[key]
+        forced["warden_forced_action"] = action.get("type")
+        forced["warden_fallback_reason"] = (
+            action.get("warden_fallback_reason") or "warden_auto_required_for_in_play_monsters"
+        )
+        return forced
 
     def _extract_warden_decision(self, body: dict[str, Any]) -> WardenDecision | None:
         message = (body.get("choices") or [{}])[0].get("message") or {}
@@ -1341,7 +1382,10 @@ class DungeonGridWardenReActPolicy:
             "one dungeongrid_warden_act tool call. Choose one bounded Warden action from "
             "the candidates in the observation; do not invent direct damage, hidden spawns, "
             "monster movement, or state changes outside those candidates. Include an "
-            "intent, axis_pressure, and fairness_check so the transcript is reviewable."
+            "intent, axis_pressure, and fairness_check so the transcript is reviewable. "
+            "When warden_auto is available, choose warden_auto: it is the bounded action "
+            "that resolves the Warden turn for every currently active in-play monster. "
+            "Use activate_monster only if warden_auto is unavailable."
         )
         return f"{base}\n\n{contract}" if base else contract
 

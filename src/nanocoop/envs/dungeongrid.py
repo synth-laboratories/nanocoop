@@ -306,13 +306,44 @@ class DungeonGridBackend:
 
     def _make_warden_policy(self, config: dict[str, Any]):
         warden_cfg = config.get("warden_policy")
-        if not isinstance(warden_cfg, dict):
+        deterministic_kinds = {
+            "deterministic",
+            "deterministic_partner",
+            "deterministic_warden",
+            "scripted",
+            "scripted_warden",
+            "none",
+            "off",
+            "false",
+        }
+        if warden_cfg is False:
             return None
-        if str(warden_cfg.get("kind") or "").lower() != "dungeongrid_warden_react":
+        if isinstance(warden_cfg, str) and warden_cfg.lower() in deterministic_kinds:
+            return None
+        if isinstance(warden_cfg, dict):
+            kind = str(warden_cfg.get("kind") or "dungeongrid_warden_react").lower()
+            if kind in deterministic_kinds:
+                return None
+            if kind != "dungeongrid_warden_react":
+                return None
+            policy_config = config
+        elif warden_cfg is None:
+            policy_cfg = config.get("policy", {}) if isinstance(config.get("policy"), dict) else {}
+            policy_kind = str(policy_cfg.get("kind") or "").lower()
+            if policy_kind not in {"dungeongrid_react", "torchgrid_react"}:
+                return None
+            policy_config = {
+                **config,
+                "warden_policy": {
+                    "kind": "dungeongrid_warden_react",
+                    "fallback": "deterministic_warden",
+                },
+            }
+        else:
             return None
         from nanocoop.policy import DungeonGridWardenReActPolicy
 
-        return DungeonGridWardenReActPolicy.from_config(config)
+        return DungeonGridWardenReActPolicy.from_config(policy_config)
 
     def _warden_policy_kind(self) -> str:
         if self.warden_policy is not None:
