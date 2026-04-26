@@ -646,6 +646,35 @@ class DungeonGridReActPolicy:
         self.private_plan_tool_count = 0
         self.private_plan_tool_counts: dict[str, int] = {}
 
+    def snapshot_state(self) -> dict[str, Any]:
+        return {
+            "schema_version": "nanocoop.dungeongrid_react_policy_state.v1",
+            "policy": "dungeongrid_react",
+            "model_name": self.model_name,
+            "api_base": self.api_base,
+            "llm_call_count": int(self.llm_call_count),
+            "llm_usage": dict(self.llm_usage),
+            "llm_usage_events": list(self.llm_usage_events),
+            "private_plans": dict(self._private_plans),
+            "private_plan_tool_count": int(self.private_plan_tool_count),
+            "private_plan_tool_counts": dict(self.private_plan_tool_counts),
+        }
+
+    def restore_state(self, state: dict[str, Any]) -> None:
+        if not isinstance(state, dict):
+            return
+        self.llm_call_count = int(state.get("llm_call_count", self.llm_call_count) or 0)
+        self.llm_usage = dict(state.get("llm_usage") or _new_llm_usage_totals())
+        self.llm_usage_events = list(state.get("llm_usage_events") or [])
+        self._private_plans = {
+            str(key): str(value) for key, value in dict(state.get("private_plans") or {}).items()
+        }
+        self.private_plan_tool_count = int(state.get("private_plan_tool_count", 0) or 0)
+        self.private_plan_tool_counts = {
+            str(key): int(value)
+            for key, value in dict(state.get("private_plan_tool_counts") or {}).items()
+        }
+
     def act(self, observation: Observation) -> str:
         plan = self.act_plan(observation)
         return json.dumps(plan[0], sort_keys=True) if plan else '{"type":"end_turn"}'
@@ -1142,6 +1171,32 @@ class DungeonGridWardenReActPolicy:
         self.fallback_count = 0
         self.action_counts: dict[str, int] = {}
         self.decisions: list[dict[str, Any]] = []
+
+    def snapshot_state(self) -> dict[str, Any]:
+        return {
+            "schema_version": "nanocoop.dungeongrid_warden_react_policy_state.v1",
+            "policy": self.name,
+            "model_name": self.model_name,
+            "api_base": self.api_base,
+            "llm_call_count": int(self.llm_call_count),
+            "llm_usage": dict(self.llm_usage),
+            "llm_usage_events": list(self.llm_usage_events),
+            "fallback_count": int(self.fallback_count),
+            "action_counts": dict(self.action_counts),
+            "decisions": list(self.decisions),
+        }
+
+    def restore_state(self, state: dict[str, Any]) -> None:
+        if not isinstance(state, dict):
+            return
+        self.llm_call_count = int(state.get("llm_call_count", self.llm_call_count) or 0)
+        self.llm_usage = dict(state.get("llm_usage") or _new_llm_usage_totals())
+        self.llm_usage_events = list(state.get("llm_usage_events") or [])
+        self.fallback_count = int(state.get("fallback_count", 0) or 0)
+        self.action_counts = {
+            str(key): int(value) for key, value in dict(state.get("action_counts") or {}).items()
+        }
+        self.decisions = list(state.get("decisions") or [])
 
     def act(self, observation: dict[str, Any]) -> dict[str, Any]:
         body: dict[str, Any] = {}

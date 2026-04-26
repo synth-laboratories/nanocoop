@@ -259,6 +259,8 @@ class DungeonGridBackend:
         warden_fallback_count = int(getattr(warden_policy, "fallback_count", 0) or 0)
         warden_action_counts = dict(getattr(warden_policy, "action_counts", {}) or {})
         warden_decisions = list(getattr(warden_policy, "decisions", []) or [])
+        focal_policy_state = self._snapshot_policy_state(focal_policy)
+        warden_policy_state = self._snapshot_policy_state(warden_policy)
         metrics.update(
             {
                 "skipped_illegal_actions": skipped_illegal_actions,
@@ -293,6 +295,8 @@ class DungeonGridBackend:
                 "warden_fallback_count": warden_fallback_count,
                 "warden_action_counts": warden_action_counts,
                 "warden_decisions": warden_decisions,
+                "focal_policy_state": focal_policy_state,
+                "warden_policy_state": warden_policy_state,
                 "private_plan_tool_count": private_plan_tool_count,
                 "private_plan_tool_counts": private_plan_tool_counts,
                 "private_plans": private_plans,
@@ -346,6 +350,13 @@ class DungeonGridBackend:
         from nanocoop.policy import DungeonGridWardenReActPolicy
 
         return DungeonGridWardenReActPolicy.from_config(policy_config)
+
+    def _snapshot_policy_state(self, policy) -> dict[str, Any]:
+        snapshot_state = getattr(policy, "snapshot_state", None)
+        if callable(snapshot_state):
+            value = snapshot_state()
+            return dict(value) if isinstance(value, dict) else {}
+        return {}
 
     def _warden_policy_kind(self) -> str:
         if self.warden_policy is not None:
