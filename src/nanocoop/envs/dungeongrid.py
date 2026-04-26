@@ -17,6 +17,7 @@ class DungeonGridBackend:
         self.max_steps = int(env_cfg.get("max_steps", 120))
         self.num_heroes = int(env_cfg.get("num_heroes", 4))
         self.observation_mode = str(env_cfg.get("observation_mode", "mixed"))
+        self.communication_protocol = env_cfg.get("communication_protocol")
         self.player_count_mode = str(
             env_cfg.get("player_count_mode") or self._player_count_mode(self.num_heroes)
         )
@@ -38,6 +39,7 @@ class DungeonGridBackend:
             num_heroes=self.num_heroes,
             seed=seed,
             observation_mode=self.observation_mode,
+            communication_protocol=self.communication_protocol,
         )
         steps: list[StepRecord] = []
         total_reward = 0.0
