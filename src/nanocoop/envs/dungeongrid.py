@@ -20,6 +20,7 @@ class DungeonGridBackend:
         self.player_count_mode = str(
             env_cfg.get("player_count_mode") or self._player_count_mode(self.num_heroes)
         )
+        self.warden_policy = self._make_warden_policy(config)
 
     def rollout(
         self,
@@ -76,7 +77,11 @@ class DungeonGridBackend:
                 last_warden_action=last_warden_action,
                 partner_name=partner_name,
             )
-            raw_plan = [partner_policy.act(policy_obs)] if active_agent == "warden" else self._policy_plan(focal_policy, policy_obs, active_agent)
+            raw_plan = (
+                [self._warden_action(env, partner_policy, policy_obs)]
+                if active_agent == "warden"
+                else self._policy_plan(focal_policy, policy_obs, active_agent)
+            )
             plan = self._coerce_plan(raw_plan)
             executed: list[dict[str, Any]] = []
             skipped: list[dict[str, Any]] = []
@@ -95,6 +100,15 @@ class DungeonGridBackend:
                     if action is None:
                         skipped.append(planned_action)
                         continue
+                    for field in (
+                        "warden_policy",
+                        "warden_intent",
+                        "warden_axis_pressure",
+                        "warden_fairness_check",
+                        "warden_fallback_reason",
+                    ):
+                        if field in planned_action:
+                            action[field] = planned_action[field]
                     step = env.step(action)
                     obs = step.observation
                     executed.append(action)
@@ -164,6 +178,18 @@ class DungeonGridBackend:
                 "events": turn_events,
                 "new_achievements": self._new_achievements_from_events(turn_events),
             }
+            if active_agent == "warden":
+                source = executed[0] if executed else (plan[0] if plan else {})
+                if isinstance(source, dict):
+                    plan_record.update(
+                        {
+                            "warden_policy": source.get("warden_policy"),
+                            "warden_intent": source.get("warden_intent"),
+                            "warden_axis_pressure": source.get("warden_axis_pressure"),
+                            "warden_fairness_check": source.get("warden_fairness_check"),
+                            "warden_fallback_reason": source.get("warden_fallback_reason"),
+                        }
+                    )
             plan_records.append(plan_record)
             if capture_states:
                 replay_frames.append(
@@ -219,9 +245,18 @@ class DungeonGridBackend:
         total_reward += final_scout_reward
         metrics["final_scout_reward"] = round(final_scout_reward, 4)
         llm_calls = int(getattr(focal_policy, "llm_call_count", 0) or 0)
+        llm_usage = dict(getattr(focal_policy, "llm_usage", {}) or {})
+        llm_usage_events = list(getattr(focal_policy, "llm_usage_events", []) or [])
         private_plan_tool_count = int(getattr(focal_policy, "private_plan_tool_count", 0) or 0)
         private_plan_tool_counts = dict(getattr(focal_policy, "private_plan_tool_counts", {}) or {})
         private_plans = dict(getattr(focal_policy, "_private_plans", {}) or {})
+        warden_policy = self.warden_policy
+        warden_llm_calls = int(getattr(warden_policy, "llm_call_count", 0) or 0)
+        warden_llm_usage = dict(getattr(warden_policy, "llm_usage", {}) or {})
+        warden_llm_usage_events = list(getattr(warden_policy, "llm_usage_events", []) or [])
+        warden_fallback_count = int(getattr(warden_policy, "fallback_count", 0) or 0)
+        warden_action_counts = dict(getattr(warden_policy, "action_counts", {}) or {})
+        warden_decisions = list(getattr(warden_policy, "decisions", []) or [])
         metrics.update(
             {
                 "skipped_illegal_actions": skipped_illegal_actions,
@@ -229,6 +264,11 @@ class DungeonGridBackend:
                 "per_hero_action_counts": per_hero_action_counts,
                 "player_count": self.num_heroes,
                 "player_count_mode": self.player_count_mode,
+                "warden_policy_kind": self._warden_policy_kind(),
+                "warden_llm_call_count": warden_llm_calls,
+                "warden_llm_usage": warden_llm_usage,
+                "warden_fallback_count": warden_fallback_count,
+                "warden_action_counts": warden_action_counts,
             }
         )
         return EpisodeTrace(
@@ -242,6 +282,15 @@ class DungeonGridBackend:
                 "backend": "dungeongrid",
                 "mode": mode,
                 "focal_llm_call_count": llm_calls,
+                "focal_llm_usage": llm_usage,
+                "focal_llm_usage_events": llm_usage_events,
+                "warden_policy_kind": self._warden_policy_kind(),
+                "warden_llm_call_count": warden_llm_calls,
+                "warden_llm_usage": warden_llm_usage,
+                "warden_llm_usage_events": warden_llm_usage_events,
+                "warden_fallback_count": warden_fallback_count,
+                "warden_action_counts": warden_action_counts,
+                "warden_decisions": warden_decisions,
                 "private_plan_tool_count": private_plan_tool_count,
                 "private_plan_tool_counts": private_plan_tool_counts,
                 "private_plans": private_plans,
@@ -254,6 +303,26 @@ class DungeonGridBackend:
                 "replay_frames": replay_frames,
             },
         )
+
+    def _make_warden_policy(self, config: dict[str, Any]):
+        warden_cfg = config.get("warden_policy")
+        if not isinstance(warden_cfg, dict):
+            return None
+        if str(warden_cfg.get("kind") or "").lower() != "dungeongrid_warden_react":
+            return None
+        from nanocoop.policy import DungeonGridWardenReActPolicy
+
+        return DungeonGridWardenReActPolicy.from_config(config)
+
+    def _warden_policy_kind(self) -> str:
+        if self.warden_policy is not None:
+            return "dungeongrid_warden_react"
+        return "deterministic_partner"
+
+    def _warden_action(self, env: DungeonGridEnvironment, partner_policy, policy_obs: Observation):
+        if self.warden_policy is not None:
+            return self.warden_policy.act(env.observe_warden())
+        return partner_policy.act(policy_obs)
 
     def write_rollout_gif(self, trace: EpisodeTrace, path: Path) -> Path:
         self._write_rollout_text(trace, path.with_suffix(".txt"))

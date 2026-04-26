@@ -11,6 +11,15 @@ def _dungeongrid_invalid_correction_hint(reason: str, action: Any) -> str:
         return "Do not repeat that direction from this tile; choose a different adjacent floor tile, open a nearby door, inspect, or end the turn."
     if reason == "illegal_target" and action_type == "inspect_tile":
         return "Inspect only nearby visible/reachable tiles; avoid far coordinates and tiles outside the visible map."
+    if reason == "not_adjacent":
+        return (
+            "That target is visible but not adjacent. Move onto a neighboring open tile first, "
+            "then retry the interact/open/search/disarm action."
+        )
+    if reason == "not_at_escape":
+        return "Move the objective carrier onto the escape tile before using interact target escape."
+    if reason == "objective_not_carried":
+        return "Recover and carry the objective before trying to escape with it."
     if reason == "insufficient_ap":
         return "Use cheaper actions that fit remaining AP, or end_turn."
     if reason in {"illegal_action", "unknown_action_type"}:
@@ -99,6 +108,10 @@ class Observation:
             visible_map_text = str(visible_map)
         self_state = self.metadata.get("self") or {}
         objective = self.metadata.get("objective") or self.metadata.get("quest_objective") or "unknown"
+        quest_title = self.metadata.get("quest_title") or self.layout
+        quest_brief = self.metadata.get("quest_brief") or ""
+        objective_instruction = self.metadata.get("objective_instruction") or ""
+        escape_instruction = self.metadata.get("escape_instruction") or ""
         visible_entities = self.metadata.get("visible_entities") or self.metadata.get("entities") or []
         visible_objects = self.metadata.get("visible_objects") or []
         visible_rooms = self.metadata.get("visible_rooms") or []
@@ -132,7 +145,7 @@ class Observation:
         invalid_warning = self._dungeongrid_invalid_feedback_text(invalid_feedback)
         return (
             f"track: dungeongrid\n"
-            f"quest: {self.layout}\n"
+            f"quest: {self.layout} ({quest_title})\n"
             f"turn: {self.step_index}/{self.max_steps}\n"
             f"active_agent: {self.metadata.get('active_agent', self.agent_id)}\n"
             f"active_role: {role or 'unknown'}\n"
@@ -152,6 +165,9 @@ class Observation:
             f"spell_cards_available: {spell_cards or 'none'}\n"
             f"spell_cards_used: {used_spell_cards or 'none'}\n"
             f"objective: {objective}\n"
+            f"quest_brief: {quest_brief or 'none'}\n"
+            f"objective_instruction: {objective_instruction or 'none'}\n"
+            f"escape_instruction: {escape_instruction or 'none'}\n"
             f"inventory: {inventory or 'empty'}\n"
             f"party_roster:\n{json.dumps(party_roster, indent=2, sort_keys=True)}\n"
             f"visible_teammates:\n{json.dumps(visible_teammates, indent=2, sort_keys=True)}\n"

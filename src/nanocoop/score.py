@@ -47,6 +47,15 @@ def summarize_eval(results: Iterable[EvalEpisodeResult]) -> dict:
     metrics["partner_breakdown"] = _breakdown(
         [row for row in rows if row.mode == "cross_play"], key="partner_name"
     )
+    llm_usage = _aggregate_llm_usage(rows)
+    if llm_usage:
+        metrics["llm_usage"] = llm_usage
+    warden_llm_usage = _aggregate_warden_llm_usage(rows)
+    if warden_llm_usage:
+        metrics["warden_llm_usage"] = warden_llm_usage
+    combined_llm_usage = _combine_usage_dicts(llm_usage, warden_llm_usage)
+    if combined_llm_usage and warden_llm_usage:
+        metrics["combined_llm_usage"] = combined_llm_usage
     player_count_rows = [
         row for row in rows if row.metadata.get("player_count_mode") is not None
     ]
@@ -110,6 +119,38 @@ def _metadata_breakdown(rows: Sequence[EvalEpisodeResult], *, metadata_key: str)
     }
 
 
+def _aggregate_llm_usage(rows: Sequence[EvalEpisodeResult]) -> dict[str, int]:
+    totals: dict[str, int] = {}
+    for row in rows:
+        usage = row.metadata.get("focal_llm_usage") or {}
+        if not isinstance(usage, dict):
+            continue
+        for key, value in usage.items():
+            if isinstance(value, int | float):
+                totals[str(key)] = totals.get(str(key), 0) + int(value)
+    return {key: value for key, value in sorted(totals.items()) if value}
+
+
+def _aggregate_warden_llm_usage(rows: Sequence[EvalEpisodeResult]) -> dict[str, int]:
+    totals: dict[str, int] = {}
+    for row in rows:
+        usage = row.metadata.get("warden_llm_usage") or {}
+        if not isinstance(usage, dict):
+            continue
+        for key, value in usage.items():
+            if isinstance(value, int | float):
+                totals[str(key)] = totals.get(str(key), 0) + int(value)
+    return {key: value for key, value in sorted(totals.items()) if value}
+
+
+def _combine_usage_dicts(*items: dict[str, int]) -> dict[str, int]:
+    totals: dict[str, int] = {}
+    for usage in items:
+        for key, value in usage.items():
+            totals[key] = totals.get(key, 0) + int(value)
+    return {key: value for key, value in sorted(totals.items()) if value}
+
+
 def _dungeongrid_secondary_metrics(rows: Sequence[EvalEpisodeResult]) -> dict:
     metric_rows = [
         row.metadata.get("dungeongrid_metrics", {})
@@ -128,7 +169,12 @@ def _dungeongrid_secondary_metrics(rows: Sequence[EvalEpisodeResult]) -> dict:
     per_hero_invalids: dict[str, list[float]] = {}
     per_hero_achievements: dict[str, list[float]] = {}
     achievement_counts: dict[str, int] = {}
+    warden_fallback_counts: list[float] = []
+    warden_action_counts: dict[str, int] = {}
     for metrics in metric_rows:
+        warden_fallback_counts.append(float(metrics.get("warden_fallback_count", 0.0) or 0.0))
+        for action_type, count in dict(metrics.get("warden_action_counts", {})).items():
+            warden_action_counts[str(action_type)] = warden_action_counts.get(str(action_type), 0) + int(count)
         for hero, count in dict(metrics.get("per_hero_action_counts", {})).items():
             per_hero_counts.setdefault(str(hero), []).append(float(count))
         for hero, stats in dict(metrics.get("per_hero_stats", {})).items():
@@ -168,6 +214,11 @@ def _dungeongrid_secondary_metrics(rows: Sequence[EvalEpisodeResult]) -> dict:
         "mean_quest_achievement_count": avg("quest_achievement_count"),
         "mean_global_achievement_count": avg("global_achievement_count"),
         "mean_achievement_reward": avg("achievement_reward"),
+        "mean_warden_llm_calls": avg("warden_llm_call_count"),
+        "mean_warden_fallback_count": round(mean(warden_fallback_counts), 4)
+        if warden_fallback_counts
+        else 0.0,
+        "warden_action_counts": dict(sorted(warden_action_counts.items())),
         "achievement_frequencies": {
             achievement_id: round(count / max(1, len(metric_rows)), 4)
             for achievement_id, count in sorted(achievement_counts.items())
@@ -252,6 +303,24 @@ def render_summary_markdown(
                 f"completion=`{values['completion_rate']}`, "
                 f"episodes=`{values['num_episodes']}`"
             )
+    llm_usage = metrics.get("llm_usage", {})
+    if llm_usage:
+        lines.append("")
+        lines.append("## Hero LLM Usage")
+        for key, value in llm_usage.items():
+            lines.append(f"- `{key}`: `{value}`")
+    warden_usage = metrics.get("warden_llm_usage", {})
+    if warden_usage:
+        lines.append("")
+        lines.append("## Warden LLM Usage")
+        for key, value in warden_usage.items():
+            lines.append(f"- `{key}`: `{value}`")
+    combined_usage = metrics.get("combined_llm_usage", {})
+    if combined_usage:
+        lines.append("")
+        lines.append("## Combined LLM Usage")
+        for key, value in combined_usage.items():
+            lines.append(f"- `{key}`: `{value}`")
     player_count_breakdown = metrics.get("player_count_breakdown", {})
     if player_count_breakdown:
         lines.append("")

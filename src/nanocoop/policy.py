@@ -9,11 +9,81 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import requests
-from dungeongrid import DungeonGridAction, dungeongrid_act_schema, dungeongrid_rules, dungeongrid_rules_schema
+from dungeongrid import (
+    DungeonGridAction,
+    WardenDecision,
+    WardenReActAdapter,
+    dungeongrid_act_schema,
+    dungeongrid_rules,
+    dungeongrid_rules_schema,
+    dungeongrid_warden_act_schema,
+)
 from pydantic import ValidationError
 
 from nanocoop.prompts import extract_behavior_flags, render_fewshot_examples
 from nanocoop.schema import Observation, PolicyPackage
+
+
+LLM_USAGE_TOKEN_KEYS = (
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+    "input_tokens",
+    "output_tokens",
+)
+
+
+def _new_llm_usage_totals() -> dict[str, Any]:
+    return {
+        "requests_with_usage": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "reasoning_tokens": 0,
+    }
+
+
+def _record_llm_usage(
+    totals: dict[str, Any],
+    events: list[dict[str, Any]],
+    *,
+    model: str,
+    body: dict[str, Any],
+) -> None:
+    usage = body.get("usage")
+    if not isinstance(usage, dict):
+        return
+    totals["requests_with_usage"] = int(totals.get("requests_with_usage", 0) or 0) + 1
+    for key in LLM_USAGE_TOKEN_KEYS:
+        value = usage.get(key)
+        if isinstance(value, int | float):
+            totals[key] = int(totals.get(key, 0) or 0) + int(value)
+
+    prompt_details = usage.get("prompt_tokens_details") or usage.get("input_tokens_details") or {}
+    if isinstance(prompt_details, dict):
+        cached = prompt_details.get("cached_tokens")
+        if isinstance(cached, int | float):
+            totals["cached_tokens"] = int(totals.get("cached_tokens", 0) or 0) + int(cached)
+
+    completion_details = (
+        usage.get("completion_tokens_details") or usage.get("output_tokens_details") or {}
+    )
+    if isinstance(completion_details, dict):
+        reasoning = completion_details.get("reasoning_tokens")
+        if isinstance(reasoning, int | float):
+            totals["reasoning_tokens"] = int(totals.get("reasoning_tokens", 0) or 0) + int(reasoning)
+
+    choice = (body.get("choices") or [{}])[0]
+    events.append(
+        {
+            "finish_reason": choice.get("finish_reason"),
+            "model": model,
+            "usage": usage,
+        }
+    )
 
 
 class Policy(Protocol):
@@ -297,6 +367,8 @@ class RemoteChatPolicy:
         self._last_plan_step = -1
         self._plan_state_key: tuple[Any, ...] | None = None
         self.llm_call_count = 0
+        self.llm_usage = _new_llm_usage_totals()
+        self.llm_usage_events: list[dict[str, Any]] = []
 
     def _act_from_plan(self, observation: Observation) -> str:
         if observation.step_index <= self._last_plan_step:
@@ -355,6 +427,12 @@ class RemoteChatPolicy:
         self.llm_call_count += 1
         response.raise_for_status()
         body = response.json()
+        _record_llm_usage(
+            self.llm_usage,
+            self.llm_usage_events,
+            model=self.model_name,
+            body=body,
+        )
         content = body["choices"][0]["message"]["content"]
         return _extract_action_from_text(content)
 
@@ -400,6 +478,12 @@ class RemoteChatPolicy:
         self.llm_call_count += 1
         response.raise_for_status()
         body = response.json()
+        _record_llm_usage(
+            self.llm_usage,
+            self.llm_usage_events,
+            model=self.model_name,
+            body=body,
+        )
         content = body["choices"][0]["message"]["content"]
         return _extract_actions_from_text(content, limit=self.plan_horizon)
 
@@ -444,6 +528,12 @@ class RemoteChatPolicy:
         self.llm_call_count += 1
         response.raise_for_status()
         body = response.json()
+        _record_llm_usage(
+            self.llm_usage,
+            self.llm_usage_events,
+            model=self.model_name,
+            body=body,
+        )
         content = body["choices"][0]["message"]["content"]
         actions = _extract_action_objects_from_text(content)
         return actions or [legal[-1]]
@@ -550,6 +640,8 @@ class DungeonGridReActPolicy:
 
     def __post_init__(self) -> None:
         self.llm_call_count = 0
+        self.llm_usage = _new_llm_usage_totals()
+        self.llm_usage_events: list[dict[str, Any]] = []
         self._private_plans: dict[str, str] = {}
         self.private_plan_tool_count = 0
         self.private_plan_tool_counts: dict[str, int] = {}
@@ -602,6 +694,12 @@ class DungeonGridReActPolicy:
                 else "auto",
             )
             body = self._post_chat_completions(payload)
+            if self._completion_budget_exhausted_without_output(body):
+                raise RuntimeError(
+                    "DungeonGrid ReAct model response exhausted max_completion_tokens "
+                    "without visible content or tool calls. For reasoning-capable models, set "
+                    "model.reasoning_effort: low/minimal or increase model.max_tokens."
+                )
             message = (body.get("choices") or [{}])[0].get("message") or {}
             actions = self._extract_tool_actions(body)
             if actions:
@@ -684,12 +782,34 @@ class DungeonGridReActPolicy:
                 )
                 self.llm_call_count += 1
                 response.raise_for_status()
-                return response.json()
+                body = response.json()
+                _record_llm_usage(
+                    self.llm_usage,
+                    self.llm_usage_events,
+                    model=self.model_name,
+                    body=body,
+                )
+                return body
             except requests.RequestException as exc:
                 last_error = exc
                 if attempt >= self.max_retries:
                     raise
         raise RuntimeError("unreachable DungeonGrid ReAct retry state") from last_error
+
+    def _completion_budget_exhausted_without_output(self, body: dict[str, Any]) -> bool:
+        choice = (body.get("choices") or [{}])[0]
+        message = choice.get("message") or {}
+        content = str(message.get("content") or "").strip()
+        tool_calls = message.get("tool_calls") or []
+        usage = body.get("usage") or {}
+        details = usage.get("completion_tokens_details") or usage.get("output_tokens_details") or {}
+        reasoning_tokens = int(details.get("reasoning_tokens") or 0) if isinstance(details, dict) else 0
+        return (
+            choice.get("finish_reason") == "length"
+            and not content
+            and not tool_calls
+            and reasoning_tokens > 0
+        )
 
     def _system_prompt(self, observation: Observation | None = None) -> str:
         base = self.package.system_prompt.strip()
@@ -978,20 +1098,345 @@ class DungeonGridReActPolicy:
         api_base = str(model_cfg.get("api_base") or default_api_base)
         api_key = os.getenv("OPENAI_API_KEY", model_cfg.get("api_key", "changeme"))
         temperature = model_cfg.get("temperature", None)
+        model_name = str(model_cfg.get("name", package.model or "gpt-5-nano"))
         return cls(
             package=package,
-            model_name=str(model_cfg.get("name", package.model or "gpt-5-nano")),
+            model_name=model_name,
             api_base=api_base,
             api_key=api_key,
             temperature=float(temperature) if temperature is not None else None,
-            max_tokens=int(model_cfg.get("max_tokens", 768)),
+            max_tokens=_dungeongrid_max_tokens(
+                model_name,
+                model_cfg.get("max_tokens"),
+            ),
             timeout_seconds=float(model_cfg.get("timeout_seconds", 60.0)),
             token_limit_field=model_cfg.get("token_limit_field"),
-            reasoning_effort=model_cfg.get("reasoning_effort"),
+            reasoning_effort=model_cfg.get("reasoning_effort")
+            or _default_dungeongrid_reasoning_effort(model_name),
             omit_temperature=bool(model_cfg.get("omit_temperature", False)),
             max_retries=int(model_cfg.get("max_retries", 2)),
             max_tool_rounds=int(model_cfg.get("max_tool_rounds", 6)),
         )
+
+
+@dataclass
+class DungeonGridWardenReActPolicy:
+    model_name: str
+    api_base: str
+    api_key: str
+    seed_prompt: str = ""
+    name: str = "dungeongrid_warden_react"
+    temperature: float | None = 0.0
+    max_tokens: int = 512
+    timeout_seconds: float = 60.0
+    token_limit_field: str | None = None
+    reasoning_effort: str | None = None
+    omit_temperature: bool = False
+    max_retries: int = 2
+    max_tool_rounds: int = 3
+
+    def __post_init__(self) -> None:
+        self.llm_call_count = 0
+        self.llm_usage = _new_llm_usage_totals()
+        self.llm_usage_events: list[dict[str, Any]] = []
+        self.fallback_count = 0
+        self.action_counts: dict[str, int] = {}
+        self.decisions: list[dict[str, Any]] = []
+
+    def act(self, observation: dict[str, Any]) -> dict[str, Any]:
+        body: dict[str, Any] = {}
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": self._system_prompt()},
+            {
+                "role": "user",
+                "content": self._user_prompt(observation),
+            },
+        ]
+        for round_index in range(max(1, self.max_tool_rounds)):
+            force_act = round_index == self.max_tool_rounds - 1
+            payload = self._chat_payload(
+                messages,
+                tool_choice={"type": "function", "function": {"name": "dungeongrid_warden_act"}}
+                if force_act
+                else "auto",
+            )
+            body = self._post_chat_completions(payload)
+            if self._completion_budget_exhausted_without_output(body):
+                return self._fallback_action(
+                    observation,
+                    reason="completion_budget_exhausted_without_output",
+                )
+            message = (body.get("choices") or [{}])[0].get("message") or {}
+            decision = self._extract_warden_decision(body)
+            if decision is not None:
+                return self._bounded_action(observation, decision)
+            tool_calls = message.get("tool_calls") or []
+            if not tool_calls:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "You did not call a tool. You may call dungeongrid_rules "
+                            "for context, but you must finish with dungeongrid_warden_act."
+                        ),
+                    }
+                )
+                continue
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": message.get("content"),
+                    "tool_calls": tool_calls,
+                }
+            )
+            for tool_call in tool_calls:
+                function = tool_call.get("function") or {}
+                name = function.get("name")
+                if name == "dungeongrid_rules":
+                    messages.append(self._rules_tool_result_message(tool_call))
+                elif name == "dungeongrid_warden_act":
+                    messages.append(
+                        self._tool_result_message(
+                            tool_call,
+                            {"error": "dungeongrid_warden_act requires one valid action object."},
+                        )
+                    )
+                else:
+                    messages.append(
+                        self._tool_result_message(tool_call, {"error": f"unknown tool: {name}"})
+                    )
+        return self._fallback_action(observation, reason="no_valid_warden_tool_call")
+
+    def _bounded_action(
+        self, observation: dict[str, Any], decision: WardenDecision
+    ) -> dict[str, Any]:
+        adapter = WardenReActAdapter(lambda _obs: decision, name=self.name)
+        action = adapter.act(observation)
+        fallback_used = str(action.get("warden_policy", "")).endswith(":fallback")
+        if fallback_used:
+            self.fallback_count += 1
+            action.setdefault("warden_fallback_reason", "outside_bounded_warden_candidates")
+        action_type = str(action.get("type") or "unknown")
+        self.action_counts[action_type] = self.action_counts.get(action_type, 0) + 1
+        self.decisions.append(
+            {
+                "action": dict(action),
+                "fallback_used": fallback_used,
+                "intent": action.get("warden_intent"),
+                "axis_pressure": action.get("warden_axis_pressure"),
+                "fairness_check": action.get("warden_fairness_check"),
+            }
+        )
+        return action
+
+    def _fallback_action(self, observation: dict[str, Any], *, reason: str) -> dict[str, Any]:
+        self.fallback_count += 1
+        action = WardenReActAdapter(lambda _obs: {"type": "__invalid__"}, name=self.name).act(
+            observation
+        )
+        action["warden_fallback_reason"] = reason
+        action_type = str(action.get("type") or "unknown")
+        self.action_counts[action_type] = self.action_counts.get(action_type, 0) + 1
+        self.decisions.append({"action": dict(action), "fallback_used": True, "reason": reason})
+        return action
+
+    def _extract_warden_decision(self, body: dict[str, Any]) -> WardenDecision | None:
+        message = (body.get("choices") or [{}])[0].get("message") or {}
+        for tool_call in message.get("tool_calls") or []:
+            function = tool_call.get("function") or {}
+            if function.get("name") != "dungeongrid_warden_act":
+                continue
+            try:
+                payload = json.loads(function.get("arguments") or "{}")
+            except json.JSONDecodeError:
+                return None
+            action = payload.get("action")
+            if not isinstance(action, dict) or not action.get("type"):
+                return None
+            try:
+                typed_action = DungeonGridAction(**action)
+            except ValidationError:
+                return None
+            return WardenDecision(
+                action=typed_action.model_dump(mode="json", exclude_none=True),
+                policy=self.name,
+                intent=str(payload.get("intent") or "").strip() or None,
+                axis_pressure=str(payload.get("axis_pressure") or "").strip() or None,
+                fairness_check=str(payload.get("fairness_check") or "").strip() or None,
+            )
+        return None
+
+    def _chat_payload(self, messages: list[dict[str, Any]], *, tool_choice: Any) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "model": self.model_name,
+            **self._token_limit_payload(),
+            "messages": messages,
+            "tools": [dungeongrid_warden_act_schema(), dungeongrid_rules_schema()],
+            "tool_choice": tool_choice,
+        }
+        if not self.omit_temperature and self.temperature is not None:
+            payload["temperature"] = self.temperature
+        if self.reasoning_effort:
+            payload["reasoning_effort"] = self.reasoning_effort
+        return payload
+
+    def _post_chat_completions(self, payload: dict[str, Any]) -> dict[str, Any]:
+        last_error: requests.RequestException | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = requests.post(
+                    f"{self.api_base.rstrip('/')}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                    timeout=self.timeout_seconds,
+                )
+                self.llm_call_count += 1
+                response.raise_for_status()
+                body = response.json()
+                _record_llm_usage(
+                    self.llm_usage,
+                    self.llm_usage_events,
+                    model=self.model_name,
+                    body=body,
+                )
+                return body
+            except requests.RequestException as exc:
+                last_error = exc
+                if attempt >= self.max_retries:
+                    raise
+        raise RuntimeError("unreachable DungeonGrid Warden retry state") from last_error
+
+    def _completion_budget_exhausted_without_output(self, body: dict[str, Any]) -> bool:
+        choice = (body.get("choices") or [{}])[0]
+        message = choice.get("message") or {}
+        content = str(message.get("content") or "").strip()
+        tool_calls = message.get("tool_calls") or []
+        usage = body.get("usage") or {}
+        details = usage.get("completion_tokens_details") or usage.get("output_tokens_details") or {}
+        reasoning_tokens = int(details.get("reasoning_tokens") or 0) if isinstance(details, dict) else 0
+        return (
+            choice.get("finish_reason") == "length"
+            and not content
+            and not tool_calls
+            and reasoning_tokens > 0
+        )
+
+    def _token_limit_payload(self) -> dict[str, int]:
+        field = self.token_limit_field
+        if not field:
+            lowered = self.model_name.lower()
+            field = "max_completion_tokens" if lowered.startswith(("gpt-5", "o")) else "max_tokens"
+        return {field: self.max_tokens}
+
+    def _system_prompt(self) -> str:
+        base = self.seed_prompt.strip()
+        contract = (
+            "You are DungeonGrid's private Warden ReAct policy. You are adversarial "
+            "but fair: pressure the dungeon's declared MARL/coordination axis, preserve "
+            "counterplay, and avoid hidden-information perfect play. You may call "
+            "dungeongrid_rules for context. Your final assistant action must be exactly "
+            "one dungeongrid_warden_act tool call. Choose one bounded Warden action from "
+            "the candidates in the observation; do not invent direct damage, hidden spawns, "
+            "monster movement, or state changes outside those candidates. Include an "
+            "intent, axis_pressure, and fairness_check so the transcript is reviewable."
+        )
+        return f"{base}\n\n{contract}" if base else contract
+
+    def _user_prompt(self, observation: dict[str, Any]) -> str:
+        selected = {
+            "quest_id": observation.get("quest_id"),
+            "quest_title": observation.get("quest_title"),
+            "round": observation.get("round"),
+            "phase": observation.get("phase"),
+            "active_agent": observation.get("active_agent"),
+            "marl_axis": observation.get("marl_axis"),
+            "coordination_type": observation.get("coordination_type"),
+            "dread": observation.get("dread"),
+            "alert": observation.get("alert"),
+            "torch": observation.get("torch"),
+            "marl_contract": observation.get("marl_contract"),
+            "warden_policy_contract": observation.get("warden_policy_contract"),
+            "visible_hero_progress": observation.get("visible_hero_progress"),
+            "recent_events": observation.get("recent_events"),
+            "recent_party_messages": observation.get("recent_party_messages"),
+            "legal_warden_action_candidates": observation.get("legal_actions") or [],
+        }
+        return (
+            "Pick one fair bounded Warden action for this Warden turn.\n\n"
+            f"{json.dumps(selected, indent=2, sort_keys=True)}"
+        )
+
+    def _rules_tool_result_message(self, tool_call: dict[str, Any]) -> dict[str, Any]:
+        function = tool_call.get("function") or {}
+        try:
+            arguments = json.loads(function.get("arguments") or "{}")
+        except json.JSONDecodeError:
+            arguments = {}
+        topic = str(arguments.get("topic") or "warden").strip() or "warden"
+        return self._tool_result_message(
+            tool_call,
+            {"topic": topic, "text": dungeongrid_rules(topic)},
+        )
+
+    def _tool_result_message(self, tool_call: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "role": "tool",
+            "tool_call_id": tool_call.get("id", ""),
+            "name": (tool_call.get("function") or {}).get("name", ""),
+            "content": json.dumps(result, sort_keys=True),
+        }
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "DungeonGridWardenReActPolicy":
+        global_model_cfg = config.get("model", {}) if isinstance(config.get("model"), dict) else {}
+        warden_cfg = (
+            config.get("warden_policy")
+            if isinstance(config.get("warden_policy"), dict)
+            else {}
+        )
+        warden_model_cfg = (
+            warden_cfg.get("model") if isinstance(warden_cfg.get("model"), dict) else {}
+        )
+        model_cfg = {**global_model_cfg, **warden_model_cfg}
+        model_name = str(model_cfg.get("name") or "gpt-4.1-nano")
+        default_api_base = os.getenv("OPENAI_API_BASE", "http://127.0.0.1:8000/v1")
+        api_base = str(model_cfg.get("api_base") or default_api_base)
+        api_key = os.getenv("OPENAI_API_KEY", model_cfg.get("api_key", "changeme"))
+        temperature = model_cfg.get("temperature", 0.0)
+        return cls(
+            model_name=model_name,
+            api_base=api_base,
+            api_key=api_key,
+            seed_prompt=str(warden_cfg.get("seed_prompt") or ""),
+            name=str(warden_cfg.get("name") or "dungeongrid_warden_react"),
+            temperature=float(temperature) if temperature is not None else None,
+            max_tokens=_dungeongrid_max_tokens(model_name, model_cfg.get("max_tokens", 512)),
+            timeout_seconds=float(model_cfg.get("timeout_seconds", 60.0)),
+            token_limit_field=model_cfg.get("token_limit_field"),
+            reasoning_effort=model_cfg.get("reasoning_effort")
+            or _default_dungeongrid_reasoning_effort(model_name),
+            omit_temperature=bool(model_cfg.get("omit_temperature", False)),
+            max_retries=int(model_cfg.get("max_retries", 2)),
+            max_tool_rounds=int(model_cfg.get("max_tool_rounds", 3)),
+        )
+
+
+def _default_dungeongrid_reasoning_effort(model_name: str) -> str | None:
+    lowered = model_name.lower()
+    if lowered in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}:
+        return "medium"
+    return None
+
+
+def _dungeongrid_max_tokens(model_name: str, configured: Any) -> int:
+    value = int(configured) if configured is not None else 768
+    lowered = model_name.lower()
+    if lowered in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}:
+        return max(value, 8192)
+    return value
 
 
 def _extract_action_from_text(content: str) -> str:
